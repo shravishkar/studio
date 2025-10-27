@@ -28,6 +28,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
       <TableHeader>
         <TableRow>
           <TableHead>Project Name</TableHead>
+          <TableHead>Client Name</TableHead>
           <TableHead>Status</TableHead>
           <TableHead>Last Updated</TableHead>
           <TableHead className="text-right">Actions</TableHead>
@@ -37,6 +38,9 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
         {projects.map((project) => (
           <TableRow key={project._id}>
             <TableCell>{project.name}</TableCell>
+            <TableCell>
+              {typeof project.clientId === 'object' ? project.clientId.name : 'N/A'}
+            </TableCell>
             <TableCell>
               <Badge
                 className={

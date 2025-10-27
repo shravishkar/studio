@@ -13,7 +13,11 @@ export interface Client {
 export interface Project {
   _id: string;
   tenantId: string;
-  clientId: string;
+  clientId: string | {
+    _id: string;
+    name: string;
+    email: string;
+  };
   name: string;
   description: string;
   status: string;

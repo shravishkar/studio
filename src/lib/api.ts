@@ -105,8 +105,8 @@ export async function addClient(tenantId: string, token: string, newClient: NewC
     if (!baseUrl) {
         throw new Error("API base URL is not configured.");
     }
-
-    const url = `${baseUrl}/clients/${tenantId}`;
+clients
+    const url = `${baseUrl}//${tenantId}`;
 
     try {
         const response = await fetch(url, {
