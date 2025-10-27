@@ -6,6 +6,7 @@ export const metadata: Metadata = {
   title: 'ClientVerse',
   description: 'A modern portal for client management.',
 };
+//commented
 
 export default function RootLayout({
   children,
