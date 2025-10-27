@@ -40,6 +40,7 @@ import Logo from "@/components/Logo";
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
   { href: "/dashboard/clients", icon: Users, label: "Clients" },
+  { href: "/dashboard/projects", icon: Briefcase, label: "Projects" },
   { href: "/dashboard/settings", icon: Settings, label: "Settings" },
 ];
 
