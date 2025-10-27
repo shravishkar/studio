@@ -10,28 +10,24 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Slider } from "@/components/ui/slider";
 import { Label } from '@/components/ui/label';
 import type { NewProject } from '@/lib/types';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   status: z.enum(['Not Started', 'In Progress', 'Completed']),
-  progress: z.number().min(0).max(100),
 });
 
 export default function AddProjectForm() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [progressValue, setProgressValue] = useState(0);
 
   const form = useForm<NewProject>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
       status: 'Not Started',
-      progress: 0,
     },
   });
 
@@ -77,29 +73,6 @@ export default function AddProjectForm() {
                 )}
               />
               {form.formState.errors.status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.status.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="progress">Progress ({progressValue}%)</Label>
-               <Controller
-                control={form.control}
-                name="progress"
-                render={({ field: { onChange, ...fieldProps } }) => (
-                  <Slider
-                    id="progress"
-                    min={0}
-                    max={100}
-                    step={1}
-                    defaultValue={[0]}
-                    onValueChange={(value) => {
-                      const numValue = value[0];
-                      onChange(numValue);
-                      setProgressValue(numValue);
-                    }}
-                    {...fieldProps}
-                  />
-                )}
-              />
             </div>
 
             <Button type="submit" disabled={isLoading}>

@@ -17,35 +17,30 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 
 const dummyProjects = [
   {
     _id: '1',
     name: 'Website Redesign',
     status: 'In Progress',
-    progress: 75,
     updatedAt: new Date(),
   },
   {
     _id: '2',
     name: 'Mobile App Development',
     status: 'Completed',
-    progress: 100,
     updatedAt: new Date(new Date().setDate(new Date().getDate() - 5)),
   },
   {
     _id: '3',
     name: 'Marketing Campaign',
     status: 'Not Started',
-    progress: 0,
     updatedAt: new Date(new Date().setDate(new Date().getDate() - 10)),
   },
   {
     _id: '4',
     name: 'SEO Optimization',
     status: 'In Progress',
-    progress: 50,
     updatedAt: new Date(new Date().setDate(new Date().getDate() - 2)),
   },
 ];
@@ -64,7 +59,6 @@ export default function ProjectsPage() {
           <TableRow>
             <TableHead>Project Name</TableHead>
             <TableHead>Status</TableHead>
-            <TableHead>Progress</TableHead>
             <TableHead>Last Updated</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -85,9 +79,6 @@ export default function ProjectsPage() {
                 >
                   {project.status}
                 </Badge>
-              </TableCell>
-              <TableCell>
-                <Progress value={project.progress} />
               </TableCell>
               <TableCell>
                 {new Date(project.updatedAt).toLocaleDateString()}

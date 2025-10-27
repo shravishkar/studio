@@ -15,7 +15,6 @@ export interface Project {
   clientId: string;
   name: string;
   status: 'Not Started' | 'In Progress' | 'Completed';
-  progress: number;
   updatedAt: string;
 }
 

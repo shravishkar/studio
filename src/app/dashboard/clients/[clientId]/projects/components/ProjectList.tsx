@@ -17,7 +17,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 
 interface ProjectListProps {
   projects: Project[];
@@ -30,7 +29,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
         <TableRow>
           <TableHead>Project Name</TableHead>
           <TableHead>Status</TableHead>
-          <TableHead>Progress</TableHead>
           <TableHead>Last Updated</TableHead>
           <TableHead className="text-right">Actions</TableHead>
         </TableRow>
@@ -51,9 +49,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
               >
                 {project.status}
               </Badge>
-            </TableCell>
-            <TableCell>
-              <Progress value={project.progress} />
             </TableCell>
             <TableCell>
               {new Date(project.updatedAt).toLocaleDateString()}
