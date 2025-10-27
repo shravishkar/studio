@@ -1,4 +1,4 @@
-import type { Client, GetClientsResponse, GetProjectsResponse, NewClient } from "./types";
+import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject } from "./types";
 
 interface ApiListResponse {
     success: boolean;
@@ -135,9 +135,45 @@ export async function addClient(tenantId: string, token: string, newClient: NewC
     }
 }
 
+// Function to add a new project for a client
+export async function addProject(tenantId: string, token: string, clientId: string, newProject: NewProject): Promise<ApiAddResponse> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+
+    const url = `${baseUrl}/projects/${tenantId}/${clientId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(newProject),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Failed to add project. Status: ${response.status}`);
+        }
+
+        const responseData: ApiAddResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData;
+    } catch (error) {
+        console.error("Error adding project:", error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred.");
+    }
+}
+
 // Function to retrieve a single client by ID
 export async function getClient(tenantId: string, token: string, clientId: string): Promise<Client> {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    const baseUrl = process.env.NEXT_PUBLIC_API__URL;
     if (!baseUrl) {
         throw new Error("API base URL is not configured.");
     }

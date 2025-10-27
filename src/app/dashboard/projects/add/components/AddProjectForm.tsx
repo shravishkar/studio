@@ -1,43 +1,84 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from '@/components/ui/label';
-import type { NewProject } from '@/lib/types';
+import { Switch } from '@/components/ui/switch';
+import { useAuth } from '@/hooks/use-auth';
+import { getClients, addProject } from '@/lib/api';
+import type { Client, NewProject } from '@/lib/types';
 
 const formSchema = z.object({
+  clientId: z.string().min(1, { message: "Client is required." }),
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  description: z.string().min(10, { message: "Description must be at least 10 characters." }),
   status: z.enum(['active', 'inactive', 'completed']),
+  isActive: z.boolean(),
 });
+
+type FormValues = z.infer<typeof formSchema>;
 
 export default function AddProjectForm() {
   const router = useRouter();
   const { toast } = useToast();
+  const { tenantId, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [clients, setClients] = useState<Client[]>([]);
 
-  const form = useForm<Omit<NewProject, 'description'>>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      clientId: '',
       name: '',
+      description: '',
       status: 'active',
+      isActive: true,
     },
   });
 
-  const onSubmit: SubmitHandler<Omit<NewProject, 'description'>> = async (data) => {
+  useEffect(() => {
+    if (!tenantId || !token) return;
+
+    const fetchClients = async () => {
+      try {
+        const { clients: fetchedClients } = await getClients(tenantId, token, 1, 100);
+        setClients(fetchedClients);
+      } catch (error) {
+        toast({ title: "Error", description: "Failed to fetch clients.", variant: "destructive" });
+      }
+    };
+
+    fetchClients();
+  }, [tenantId, token, toast]);
+
+  const onSubmit: SubmitHandler<FormValues> = async (data) => {
+    if (!tenantId || !token) {
+      toast({ title: "Authentication Error", description: "Authentication details are missing.", variant: "destructive" });
+      return;
+    }
+    
     setIsLoading(true);
-    console.log(data); // For now, just log the data.
-    await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
-    setIsLoading(false);
-    toast({ title: "Success", description: "Project added successfully." });
-    router.push('/dashboard/projects');
+
+    const { clientId, ...projectData } = data;
+
+    try {
+      await addProject(tenantId, token, clientId, projectData);
+      toast({ title: "Success", description: "Project added successfully." });
+      router.push('/dashboard/projects');
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to add project.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -49,9 +90,38 @@ export default function AddProjectForm() {
         <FormProvider {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div>
+              <Label htmlFor="clientId">Client</Label>
+              <Controller
+                control={form.control}
+                name="clientId"
+                render={({ field }) => (
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <SelectTrigger id="clientId">
+                      <SelectValue placeholder="Select a client" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {clients.map(client => (
+                        <SelectItem key={client._id} value={client._id}>
+                          {client.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {form.formState.errors.clientId && <p className="text-red-500 text-xs mt-1">{form.formState.errors.clientId.message}</p>}
+            </div>
+
+            <div>
               <Label htmlFor="name">Project Name</Label>
               <Input id="name" placeholder="E.g. Website Redesign" {...form.register("name")} />
               {form.formState.errors.name && <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message}</p>}
+            </div>
+            
+            <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" placeholder="Describe the project" {...form.register("description")} />
+                {form.formState.errors.description && <p className="text-red-500 text-xs mt-1">{form.formState.errors.description.message}</p>}
             </div>
 
             <div>
@@ -74,6 +144,22 @@ export default function AddProjectForm() {
               />
               {form.formState.errors.status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.status.message}</p>}
             </div>
+
+            <div className="flex items-center space-x-2">
+                <Controller
+                    control={form.control}
+                    name="isActive"
+                    render={({ field }) => (
+                        <Switch
+                            id="isActive"
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                        />
+                    )}
+                />
+                <Label htmlFor="isActive">Project is active</Label>
+            </div>
+
 
             <Button type="submit" disabled={isLoading}>
               {isLoading ? 'Adding Project...' : 'Add Project'}

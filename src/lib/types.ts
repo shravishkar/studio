@@ -45,4 +45,4 @@ export type NewClient = Omit<Client, '_id' | 'tenantId' | 'createdAt' | 'updated
 };
 
 // Type for creating a new project, omits server-generated fields
-export type NewProject = Omit<Project, '_id' | 'clientId' | 'tenantId' | 'isActive' | 'createdAt' | 'updatedAt' | 'description'>;
+export type NewProject = Pick<Project, 'name' | 'description' | 'status' | 'isActive'>;
