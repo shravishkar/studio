@@ -15,7 +15,7 @@ import type { NewProject } from '@/lib/types';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
-  status: z.enum(['Not Started', 'In Progress', 'Completed']),
+  status: z.enum(['active', 'inactive', 'completed']),
 });
 
 export default function AddProjectForm() {
@@ -23,15 +23,15 @@ export default function AddProjectForm() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<NewProject>({
+  const form = useForm<Omit<NewProject, 'description'>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       name: '',
-      status: 'Not Started',
+      status: 'active',
     },
   });
 
-  const onSubmit: SubmitHandler<NewProject> = async (data) => {
+  const onSubmit: SubmitHandler<Omit<NewProject, 'description'>> = async (data) => {
     setIsLoading(true);
     console.log(data); // For now, just log the data.
     await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate API call
@@ -65,9 +65,9 @@ export default function AddProjectForm() {
                       <SelectValue placeholder="Select status" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Not Started">Not Started</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="Completed">Completed</SelectItem>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="completed">Completed</SelectItem>
                     </SelectContent>
                   </Select>
                 )}

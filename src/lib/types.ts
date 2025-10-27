@@ -12,9 +12,13 @@ export interface Client {
 
 export interface Project {
   _id: string;
+  tenantId: string;
   clientId: string;
   name: string;
-  status: 'Not Started' | 'In Progress' | 'Completed';
+  description: string;
+  status: string;
+  isActive: boolean;
+  createdAt: string;
   updatedAt: string;
 }
 
@@ -30,10 +34,15 @@ export interface GetClientsResponse {
   pagination: Pagination;
 }
 
+export interface GetProjectsResponse {
+  projects: Project[];
+  pagination: Pagination;
+}
+
 // Type for creating a new client, omits server-generated fields
 export type NewClient = Omit<Client, '_id' | 'tenantId' | 'createdAt' | 'updatedAt' | 'isActive' | 'profileUrl'> & {
     profileImageBinary?: string;
 };
 
 // Type for creating a new project, omits server-generated fields
-export type NewProject = Omit<Project, '_id' | 'clientId' | 'updatedAt'>;
+export type NewProject = Omit<Project, '_id' | 'clientId' | 'tenantId' | 'isActive' | 'createdAt' | 'updatedAt' | 'description'>;

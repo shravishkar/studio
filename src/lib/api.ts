@@ -1,9 +1,15 @@
-import type { Client, GetClientsResponse, NewClient } from "./types";
+import type { Client, GetClientsResponse, GetProjectsResponse, NewClient } from "./types";
 
 interface ApiListResponse {
     success: boolean;
     message: string;
     data: GetClientsResponse;
+}
+
+interface ApiProjectsListResponse {
+    success: boolean;
+    message: string;
+    data: GetProjectsResponse;
 }
 
 interface ApiSingleResponse {
@@ -52,6 +58,46 @@ export async function getClients(tenantId: string, token: string, page: number, 
         throw error instanceof Error ? error : new Error("An unknown error occurred.");
     }
 }
+
+// Function to get projects for a specific client
+export async function getProjects(tenantId: string, token: string, clientId: string): Promise<GetProjectsResponse> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+
+    const url = `${baseUrl}/projects/${tenantId}/${clientId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            // Provide a more specific error for 404
+            if (response.status === 404) {
+                 return { projects: [], pagination: { current: 1, total: 0, count: 0, totalRecords: 0 } };
+            }
+            throw new Error(errorData?.message || `Failed to fetch projects. Status: ${response.status}`);
+        }
+
+        const responseData: ApiProjectsListResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData.data;
+    } catch (error) {
+        console.error(`Error getting projects for client ${clientId}:`, error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred while fetching projects.");
+    }
+}
+
 
 // Function to add a new client
 export async function addClient(tenantId: string, token: string, newClient: NewClient): Promise<ApiAddResponse> {

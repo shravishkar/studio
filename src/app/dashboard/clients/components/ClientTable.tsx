@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useEffect, useState } from 'react';
@@ -16,6 +17,13 @@ import { getClients } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import type { Client, Pagination } from '@/lib/types';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { MoreHorizontal } from 'lucide-react';
 
 const ClientRow = ({ client }: { client: Client }) => (
   <TableRow key={client._id}>
@@ -29,9 +37,23 @@ const ClientRow = ({ client }: { client: Client }) => (
     <TableCell>{client.email}</TableCell>
     <TableCell>{client.phone || 'N/A'}</TableCell>
     <TableCell>
-      <Link href={`/dashboard/clients/${client._id}/edit`}>
-        <Button variant="outline" size="sm">Edit</Button>
-      </Link>
+       <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="h-8 w-8 p-0">
+            <span className="sr-only">Open menu</span>
+            <MoreHorizontal className="h-4 w-4" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem asChild>
+            <Link href={`/dashboard/clients/${client._id}/edit`}>Edit</Link>
+          </DropdownMenuItem>
+           <DropdownMenuItem asChild>
+            <Link href={`/dashboard/clients/${client._id}/projects`}>View Projects</Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem>Delete</DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
     </TableCell>
   </TableRow>
 );

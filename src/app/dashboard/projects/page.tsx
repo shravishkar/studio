@@ -1,107 +1,108 @@
 
-import Link from 'next/link';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
+'use client';
 
-const dummyProjects = [
-  {
-    _id: '1',
-    name: 'Website Redesign',
-    status: 'In Progress',
-    updatedAt: new Date(),
-  },
-  {
-    _id: '2',
-    name: 'Mobile App Development',
-    status: 'Completed',
-    updatedAt: new Date(new Date().setDate(new Date().getDate() - 5)),
-  },
-  {
-    _id: '3',
-    name: 'Marketing Campaign',
-    status: 'Not Started',
-    updatedAt: new Date(new Date().setDate(new Date().getDate() - 10)),
-  },
-  {
-    _id: '4',
-    name: 'SEO Optimization',
-    status: 'In Progress',
-    updatedAt: new Date(new Date().setDate(new Date().getDate() - 2)),
-  },
-];
+import { useEffect, useState, useMemo } from 'react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+import { getClients, getProjects } from '@/lib/api';
+import { useAuth } from '@/hooks/use-auth';
+import type { Client, Project } from '@/lib/types';
+import ProjectList from '../clients/[clientId]/projects/components/ProjectList';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 export default function ProjectsPage() {
+  const [clients, setClients] = useState<Client[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { tenantId, token } = useAuth();
+
+  useEffect(() => {
+    if (!tenantId || !token) return;
+
+    const fetchInitialData = async () => {
+      try {
+        setLoading(true);
+        const { clients: fetchedClients } = await getClients(tenantId, token, 1, 100);
+        setClients(fetchedClients);
+
+        if (fetchedClients.length > 0) {
+          const firstClientId = fetchedClients[0]._id;
+          setSelectedClientId(firstClientId);
+          const { projects: fetchedProjects } = await getProjects(tenantId, token, firstClientId);
+          setProjects(fetchedProjects);
+        }
+        setError(null);
+      } catch (err: any) {
+        setError(err.message || 'Failed to fetch initial data');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInitialData();
+  }, [tenantId, token]);
+
+  const handleClientChange = async (clientId: string) => {
+    if (!tenantId || !token) return;
+    setSelectedClientId(clientId);
+    try {
+      setLoading(true);
+      const { projects: fetchedProjects } = await getProjects(tenantId, token, clientId);
+      setProjects(fetchedProjects);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch projects');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const selectedClientName = useMemo(() => {
+    return clients.find(c => c._id === selectedClientId)?.name || 'Projects';
+  }, [clients, selectedClientId]);
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Projects</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold">{selectedClientName}</h1>
+          <Select onValueChange={handleClientChange} value={selectedClientId || ''}>
+            <SelectTrigger className="w-[200px]">
+              <SelectValue placeholder="Select a client" />
+            </SelectTrigger>
+            <SelectContent>
+              {clients.map(client => (
+                <SelectItem key={client._id} value={client._id}>
+                  {client.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         <Link href="/dashboard/projects/add">
           <Button>Create Project</Button>
         </Link>
       </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Project Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Last Updated</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {dummyProjects.map((project) => (
-            <TableRow key={project._id}>
-              <TableCell>{project.name}</TableCell>
-              <TableCell>
-                <Badge
-                  className={
-                    project.status === 'Completed'
-                      ? 'bg-green-500'
-                      : project.status === 'In Progress'
-                      ? 'bg-blue-500'
-                      : 'bg-gray-500'
-                  }
-                >
-                  {project.status}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {new Date(project.updatedAt).toLocaleDateString()}
-              </TableCell>
-              <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem>View</DropdownMenuItem>
-                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                    <DropdownMenuItem>Delete</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      {loading ? (
+         <div className="space-y-2">
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+            <Skeleton className="h-12 w-full" />
+         </div>
+      ) : error ? (
+        <div className="text-red-500 text-center">Error: {error}</div>
+      ) : (
+        <ProjectList projects={projects} />
+      )}
     </div>
   );
 }
