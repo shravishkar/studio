@@ -1,4 +1,5 @@
 
+import Link from 'next/link';
 import {
   Table,
   TableBody,
@@ -52,6 +53,12 @@ const dummyProjects = [
 export default function ProjectsPage() {
   return (
     <div className="w-full">
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold">Projects</h1>
+        <Link href="/dashboard/projects/add">
+          <Button>Create Project</Button>
+        </Link>
+      </div>
       <Table>
         <TableHeader>
           <TableRow>
