@@ -44,9 +44,9 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
             <TableCell>
               <Badge
                 className={
-                  project.status === 'Completed'
+                  project.status === 'completed'
                     ? 'bg-green-500'
-                    : project.status === 'In Progress'
+                    : project.status === 'active'
                     ? 'bg-blue-500'
                     : 'bg-gray-500'
                 }
