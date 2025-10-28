@@ -1,3 +1,4 @@
+
 import { FC } from 'react';
 import { Project } from '@/lib/types';
 import {
@@ -78,7 +79,9 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem>View</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}`}>View</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem asChild>
                     <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`}>Edit</Link>
                   </DropdownMenuItem>
