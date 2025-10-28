@@ -219,7 +219,7 @@ export async function getProject(tenantId: string, token: string, projectId: str
         throw new Error("API base URL is not configured.");
     }
     
-    // Assuming an endpoint to get all projects for a tenant if no client ID is specified
+    // Fetch all projects for the tenant and find the specific one.
     const allProjectsData = await getProjects(tenantId, token);
     const project = allProjectsData.projects.find(p => p._id === projectId);
 
