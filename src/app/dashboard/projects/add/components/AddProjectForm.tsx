@@ -44,7 +44,6 @@ export default function AddProjectForm() {
   const { tenantId, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
-  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -56,16 +55,6 @@ export default function AddProjectForm() {
       isActive: true,
     },
   });
-
-  const { formState: { isDirty } } = form;
-
-  const handleBackClick = () => {
-    if (isDirty) {
-      setShowDiscardDialog(true);
-    } else {
-      router.back();
-    }
-  };
 
   useEffect(() => {
     if (!tenantId || !token) return;
@@ -106,10 +95,7 @@ export default function AddProjectForm() {
   return (
     <>
       <Card>
-        <CardHeader className="flex flex-row items-center">
-            <Button variant="ghost" size="icon" onClick={handleBackClick} className="mr-2">
-                <ArrowLeft className="h-5 w-5" />
-            </Button>
+        <CardHeader>
             <CardTitle>Project Details</CardTitle>
         </CardHeader>
         <CardContent>
@@ -196,20 +182,6 @@ export default function AddProjectForm() {
           </FormProvider>
         </CardContent>
       </Card>
-      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to leave? Your changes will be discarded.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={() => router.back()}>Discard</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
