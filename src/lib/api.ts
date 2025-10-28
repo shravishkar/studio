@@ -1,4 +1,5 @@
-import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject, Project } from "./types";
+
+import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject, NewTask, Project } from "./types";
 
 interface ApiListResponse {
     success: boolean;
@@ -175,6 +176,44 @@ export async function addProject(tenantId: string, token: string, clientId: stri
         throw error instanceof Error ? error : new Error("An unknown error occurred.");
     }
 }
+
+// Function to add a new task to a project
+export async function addTask(tenantId: string, token: string, clientId: string, projectId: string, newTask: NewTask): Promise<ApiAddResponse> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+
+    // Assuming the API endpoint for tasks is /tasks/:tenantId/:clientId/:projectId
+    const url = `${baseUrl}/tasks/${tenantId}/${clientId}/${projectId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(newTask),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Failed to add task. Status: ${response.status}`);
+        }
+
+        const responseData: ApiAddResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData;
+    } catch (error) {
+        console.error("Error adding task:", error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred.");
+    }
+}
+
 
 // Function to retrieve a single client by ID
 export async function getClient(tenantId: string, token: string, clientId: string): Promise<Client> {

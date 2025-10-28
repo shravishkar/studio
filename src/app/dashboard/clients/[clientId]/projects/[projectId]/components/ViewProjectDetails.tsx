@@ -7,11 +7,15 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/hooks/use-auth';
 import { getProject } from '@/lib/api';
-import type { Project } from '@/lib/types';
+import type { Project, Task } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import AddTaskForm from './AddTaskForm';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+
 
 interface ViewProjectDetailsProps {
   clientId: string;
@@ -23,26 +27,30 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const { toast } = useToast();
   const { tenantId, token } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]); // Placeholder for tasks
   const [isLoading, setIsLoading] = useState(true);
+  const [isAddTaskOpen, setAddTaskOpen] = useState(false);
 
-  useEffect(() => {
+  const fetchProjectData = async () => {
     if (!tenantId || !token || !clientId || !projectId) {
       setIsLoading(false);
       return;
     }
+    setIsLoading(true);
+    try {
+      const projectData = await getProject(tenantId, token, clientId, projectId);
+      setProject(projectData);
+      // In a real app, you would fetch tasks for the project here
+      // e.g., const tasksData = await getTasks(tenantId, token, projectId);
+      // setTasks(tasksData);
+    } catch (error: any) {
+      toast({ title: "Error", description: "Failed to fetch project details.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    const fetchProjectData = async () => {
-      setIsLoading(true);
-      try {
-        const projectData = await getProject(tenantId, token, clientId, projectId);
-        setProject(projectData);
-      } catch (error: any) {
-        toast({ title: "Error", description: "Failed to fetch project details.", variant: "destructive" });
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
+  useEffect(() => {
     fetchProjectData();
   }, [tenantId, token, clientId, projectId, toast]);
 
@@ -85,55 +93,114 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const clientName = typeof project.clientId === 'object' ? project.clientId.name : 'N/A';
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex justify-between items-start mb-4">
-          <div className="flex-grow">
-            <CardTitle className="text-2xl font-bold">{project.name}</CardTitle>
-            <CardDescription>Viewing details for project associated with {clientName}</CardDescription>
+    <>
+      <Card>
+        <CardHeader>
+          <div className="flex justify-between items-start mb-4">
+            <div className="flex-grow">
+              <CardTitle className="text-2xl font-bold">{project.name}</CardTitle>
+              <CardDescription>Viewing details for project associated with {clientName}</CardDescription>
+            </div>
+            <Button onClick={() => router.push(`/dashboard/clients/${clientId}/projects/${projectId}/edit`)}>
+                Edit Project
+            </Button>
           </div>
-          <Button onClick={() => router.push(`/dashboard/clients/${clientId}/projects/${projectId}/edit`)}>
-              Edit Project
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div>
-          <h3 className="font-semibold text-lg mb-2">Description</h3>
-          <p className="text-muted-foreground">{project.description}</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-                <h3 className="font-semibold text-lg mb-2">Status</h3>
-                <Badge
-                    variant={
-                    project.status === 'completed' ? 'default' : project.status === 'active' ? 'secondary' : 'outline'
-                    }
-                    className={
-                    project.status === 'completed' ? 'bg-green-500' : project.status === 'active' ? 'bg-blue-500' : 'bg-gray-500'
-                    }
-                >
-                    {project.status}
-                </Badge>
-            </div>
-            <div>
-                <h3 className="font-semibold text-lg mb-2">Active</h3>
-                <p className="text-muted-foreground">{project.isActive ? 'Yes' : 'No'}</p>
-            </div>
-        </div>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div>
+            <h3 className="font-semibold text-lg mb-2">Description</h3>
+            <p className="text-muted-foreground">{project.description}</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                  <h3 className="font-semibold text-lg mb-2">Status</h3>
+                  <Badge
+                      variant={
+                      project.status === 'completed' ? 'default' : project.status === 'active' ? 'secondary' : 'outline'
+                      }
+                  >
+                      {project.status}
+                  </Badge>
+              </div>
+              <div>
+                  <h3 className="font-semibold text-lg mb-2">Active</h3>
+                  <p className="text-muted-foreground">{project.isActive ? 'Yes' : 'No'}</p>
+              </div>
+          </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h3 className="font-semibold text-lg mb-2">Date Created</h3>
-            <p className="text-muted-foreground">{new Date(project.createdAt).toLocaleDateString()}</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Date Created</h3>
+              <p className="text-muted-foreground">{new Date(project.createdAt).toLocaleDateString()}</p>
+            </div>
+            <div>
+              <h3 className="font-semibold text-lg mb-2">Last Updated</h3>
+              <p className="text-muted-foreground">{new Date(project.updatedAt).toLocaleDateString()}</p>
+            </div>
           </div>
-          <div>
-            <h3 className="font-semibold text-lg mb-2">Last Updated</h3>
-            <p className="text-muted-foreground">{new Date(project.updatedAt).toLocaleDateString()}</p>
+        </CardContent>
+      </Card>
+
+      <Card className="mt-6">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Tasks</CardTitle>
+            <Dialog open={isAddTaskOpen} onOpenChange={setAddTaskOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Task
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                  <DialogTitle>Add New Task</DialogTitle>
+                </DialogHeader>
+                <AddTaskForm 
+                  clientId={clientId}
+                  projectId={projectId}
+                  onTaskAdded={() => {
+                    // Refetch tasks here
+                    fetchProjectData();
+                  }}
+                  setOpen={setAddTaskOpen}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
-        </div>
-      </CardContent>
-    </Card>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Title</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {tasks.length > 0 ? tasks.map(task => (
+                <TableRow key={task._id}>
+                  <TableCell>{task.title}</TableCell>
+                  <TableCell>
+                    <Badge>{task.status}</Badge>
+                  </TableCell>
+                  <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                  <TableCell>
+                    {/* Task Actions (Edit, Delete) can be added here */}
+                  </TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
+    </>
   );
 }
