@@ -1,8 +1,9 @@
+
 'use client';
 
 import { FC, useState } from 'react';
 import { Project, Task } from '@/lib/types';
-import { deleteProject } from '@/lib/api';
+import { deleteProject, getTasks } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -31,7 +32,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-import { Eye, Edit, Trash2, ListChecks, PlusCircle } from 'lucide-react';
+import { Eye, Edit, Trash2, ListChecks, PlusCircle, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
@@ -42,21 +43,16 @@ interface ProjectListProps {
   onProjectDeleted: (projectId: string) => void;
 }
 
-const dummyTasks: Omit<Task, '_id' | 'projectId'>[] = [
-  { title: "Initial mockup design", status: 'done', createdDate: "2024-01-15", dueDate: "2024-01-20", visibleToClient: true },
-  { title: "Develop homepage layout", status: 'in-progress', createdDate: "2024-01-21", dueDate: "2024-02-10", visibleToClient: true },
-  { title: "Implement user authentication", status: 'todo', createdDate: "2024-02-01", dueDate: "2024-02-28", visibleToClient: false },
-  { title: "Deploy to staging server", status: 'todo', createdDate: "2024-02-15", dueDate: "2024-03-05", visibleToClient: false },
-];
-
-
 const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const { tenantId, token } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  
   const [tasksToShow, setTasksToShow] = useState<Project | null>(null);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
 
 
   const getClientId = (project: Project) => {
@@ -76,6 +72,30 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const handleRowClick = (project: Project) => {
     const clientId = getClientId(project);
     router.push(`/dashboard/clients/${clientId}/projects/${project._id}`);
+  };
+
+  const handleViewTasks = async (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation();
+    setTasksToShow(project);
+    setIsLoadingTasks(true);
+    setTasks([]);
+
+    if (!tenantId || !token) {
+        toast({ title: "Error", description: "Authentication details missing.", variant: "destructive" });
+        setIsLoadingTasks(false);
+        return;
+    }
+
+    const clientId = getClientId(project);
+
+    try {
+        const { tasks: fetchedTasks } = await getTasks(tenantId, token, clientId, project._id);
+        setTasks(fetchedTasks);
+    } catch (error: any) {
+        toast({ title: "Error", description: error.message || "Failed to fetch tasks.", variant: "destructive" });
+    } finally {
+        setIsLoadingTasks(false);
+    }
   };
 
 
@@ -172,7 +192,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-full">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-green-100 dark:hover:bg-green-900/50 hover:w-auto hover:px-3" onClick={(e) => handleActionClick(e, () => setTasksToShow(project))}>
+                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-green-100 dark:hover:bg-green-900/50 hover:w-auto hover:px-3" onClick={(e) => handleViewTasks(e, project)}>
                                     <ListChecks className="h-4 w-4 text-green-500 group-hover:text-green-600 dark:group-hover:text-green-400" />
                                     <span className="hidden group-hover:inline ml-2 text-sm text-green-600 dark:text-green-400">Tasks</span>
                                 </Button>
@@ -206,35 +226,40 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
             </DialogDescription>
           </DialogHeader>
           <div className="mt-4">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Due Date</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {dummyTasks.map((task, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{task.title}</TableCell>
-                    <TableCell>
-                      <Badge 
-                        variant={task.status === 'done' ? 'default' : task.status === 'in-progress' ? 'secondary' : 'outline'}
-                        className={
-                            task.status === 'done' ? 'bg-green-500 hover:bg-green-600' :
-                            task.status === 'in-progress' ? 'bg-blue-500 hover:bg-blue-600' :
-                            'bg-gray-500 hover:bg-gray-600'
-                        }
-                      >
-                        {task.status}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+             {isLoadingTasks ? (
+                <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+             ) : (
+                <Table>
+                <TableHeader>
+                    <TableRow>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    </TableRow>
+                </TableHeader>
+                <TableBody>
+                    {tasks.length > 0 ? tasks.map((task) => (
+                    <TableRow key={task._id}>
+                        <TableCell>{task.title}</TableCell>
+                        <TableCell>
+                        <Badge 
+                            variant={task.status === 'done' ? 'default' : task.status === 'in-progress' ? 'secondary' : 'outline'}
+                        >
+                            {task.status}
+                        </Badge>
+                        </TableCell>
+                        <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                    )) : (
+                        <TableRow>
+                            <TableCell colSpan={3} className="text-center">No tasks found for this project.</TableCell>
+                        </TableRow>
+                    )}
+                </TableBody>
+                </Table>
+             )}
           </div>
         </DialogContent>
       </Dialog>

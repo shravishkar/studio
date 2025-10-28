@@ -1,5 +1,5 @@
 
-import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject, NewTask, Project } from "./types";
+import type { Client, GetClientsResponse, GetProjectsResponse, GetTasksResponse, NewClient, NewProject, NewTask, Project, Task } from "./types";
 
 interface ApiListResponse {
     success: boolean;
@@ -12,6 +12,13 @@ interface ApiProjectsListResponse {
     message: string;
     data: GetProjectsResponse;
 }
+
+interface ApiTasksListResponse {
+    success: boolean;
+    message: string;
+    data: GetTasksResponse;
+}
+
 
 interface ApiSingleResponse {
     success: boolean;
@@ -101,6 +108,44 @@ export async function getProjects(tenantId: string, token: string, clientId?: st
     } catch (error) {
         console.error(`Error getting projects for client ${clientId}:`, error);
         throw error instanceof Error ? error : new Error("An unknown error occurred while fetching projects.");
+    }
+}
+
+// Function to get tasks for a specific project
+export async function getTasks(tenantId: string, token: string, clientId: string, projectId: string): Promise<GetTasksResponse> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+
+    const url = `${baseUrl}/tasks/${tenantId}/${clientId}/${projectId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            if (response.status === 404) {
+                return { tasks: [], pagination: { current: 1, total: 0, count: 0, totalRecords: 0 } };
+            }
+            throw new Error(errorData?.message || `Failed to fetch tasks. Status: ${response.status}`);
+        }
+
+        const responseData: ApiTasksListResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData.data;
+    } catch (error) {
+        console.error(`Error getting tasks for project ${projectId}:`, error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred while fetching tasks.");
     }
 }
 

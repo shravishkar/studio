@@ -1,4 +1,5 @@
 
+
 export interface Client {
   _id: string;
   tenantId: string;
@@ -29,13 +30,17 @@ export interface Project {
 
 export interface Task {
   _id: string;
-  projectId: string;
+  projectId: string | {
+    _id: string;
+    name: string;
+  };
   title: string;
   description: string;
   status: 'todo' | 'in-progress' | 'done';
   createdDate: string;
   dueDate: string;
   visibleToClient: boolean;
+  isActive: boolean;
 }
 
 export interface Pagination {
@@ -55,6 +60,11 @@ export interface GetProjectsResponse {
   pagination: Pagination;
 }
 
+export interface GetTasksResponse {
+  tasks: Task[];
+  pagination: Pagination;
+}
+
 // Type for creating a new client, omits server-generated fields
 export type NewClient = Omit<Client, '_id' | 'tenantId' | 'createdAt' | 'updatedAt' | 'isActive' | 'profileUrl'> & {
     profileImageBinary?: string;
@@ -64,4 +74,4 @@ export type NewClient = Omit<Client, '_id' | 'tenantId' | 'createdAt' | 'updated
 export type NewProject = Pick<Project, 'name' | 'description' | 'status' | 'isActive'>;
 
 // Type for creating a new task
-export type NewTask = Omit<Task, '_id' | 'projectId' | 'createdDate' | 'status'>;
+export type NewTask = Omit<Task, '_id' | 'projectId' | 'createdDate' | 'status' | 'isActive'>;

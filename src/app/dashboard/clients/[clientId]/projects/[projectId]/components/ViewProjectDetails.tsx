@@ -1,17 +1,17 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/hooks/use-auth';
-import { getProject } from '@/lib/api';
+import { getProject, getTasks } from '@/lib/api';
 import type { Project, Task } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { PlusCircle } from 'lucide-react';
+import { PlusCircle, Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AddTaskForm from './AddTaskForm';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -27,32 +27,40 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const { toast } = useToast();
   const { tenantId, token } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
-  const [tasks, setTasks] = useState<Task[]>([]); // Placeholder for tasks
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
 
-  const fetchProjectData = async () => {
+  const fetchProjectAndTasks = useCallback(async () => {
     if (!tenantId || !token || !clientId || !projectId) {
       setIsLoading(false);
+      setIsLoadingTasks(false);
       return;
     }
+    
     setIsLoading(true);
+    setIsLoadingTasks(true);
+    
     try {
       const projectData = await getProject(tenantId, token, clientId, projectId);
       setProject(projectData);
-      // In a real app, you would fetch tasks for the project here
-      // e.g., const tasksData = await getTasks(tenantId, token, projectId);
-      // setTasks(tasksData);
+      
+      const tasksData = await getTasks(tenantId, token, clientId, projectId);
+      setTasks(tasksData.tasks);
+
     } catch (error: any) {
       toast({ title: "Error", description: "Failed to fetch project details.", variant: "destructive" });
     } finally {
       setIsLoading(false);
+      setIsLoadingTasks(false);
     }
-  };
+  }, [tenantId, token, clientId, projectId, toast]);
+
 
   useEffect(() => {
-    fetchProjectData();
-  }, [tenantId, token, clientId, projectId, toast]);
+    fetchProjectAndTasks();
+  }, [fetchProjectAndTasks]);
 
   if (isLoading) {
     return (
@@ -161,8 +169,7 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                   clientId={clientId}
                   projectId={projectId}
                   onTaskAdded={() => {
-                    // Refetch tasks here
-                    fetchProjectData();
+                    fetchProjectAndTasks();
                   }}
                   setOpen={setAddTaskOpen}
                 />
@@ -171,34 +178,40 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Title</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tasks.length > 0 ? tasks.map(task => (
-                <TableRow key={task._id}>
-                  <TableCell>{task.title}</TableCell>
-                  <TableCell>
-                    <Badge>{task.status}</Badge>
-                  </TableCell>
-                  <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
-                  <TableCell>
-                    {/* Task Actions (Edit, Delete) can be added here */}
-                  </TableCell>
-                </TableRow>
-              )) : (
+          {isLoadingTasks ? (
+            <div className="flex justify-center items-center h-40">
+                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Due Date</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {tasks.length > 0 ? tasks.map(task => (
+                  <TableRow key={task._id}>
+                    <TableCell>{task.title}</TableCell>
+                    <TableCell>
+                      <Badge>{task.status}</Badge>
+                    </TableCell>
+                    <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                    <TableCell>
+                      {/* Task Actions (Edit, Delete) can be added here */}
+                    </TableCell>
+                  </TableRow>
+                )) : (
+                  <TableRow>
+                    <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </>
