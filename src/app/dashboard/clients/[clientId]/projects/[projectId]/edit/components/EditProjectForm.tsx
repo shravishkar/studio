@@ -25,6 +25,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ArrowLeft } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -106,7 +107,10 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
   return (
     <>
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center">
+          <Button variant="ghost" size="icon" onClick={handleBackClick} className="mr-2">
+              <ArrowLeft className="h-5 w-5" />
+          </Button>
           <CardTitle>Edit Project Details</CardTitle>
         </CardHeader>
         <CardContent>
@@ -149,9 +153,6 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
               <div className="flex gap-2">
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? 'Updating Project...' : 'Update Project'}
-                </Button>
-                 <Button type="button" variant="outline" onClick={handleBackClick}>
-                  Back
                 </Button>
               </div>
             </form>

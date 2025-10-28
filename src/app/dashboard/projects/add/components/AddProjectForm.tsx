@@ -26,6 +26,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { ArrowLeft } from 'lucide-react';
 
 const formSchema = z.object({
   clientId: z.string().min(1, { message: "Client is required." }),
@@ -105,8 +106,11 @@ export default function AddProjectForm() {
   return (
     <>
       <Card>
-        <CardHeader>
-          <CardTitle>Project Details</CardTitle>
+        <CardHeader className="flex flex-row items-center">
+            <Button variant="ghost" size="icon" onClick={handleBackClick} className="mr-2">
+                <ArrowLeft className="h-5 w-5" />
+            </Button>
+            <CardTitle>Project Details</CardTitle>
         </CardHeader>
         <CardContent>
           <FormProvider {...form}>
@@ -186,9 +190,6 @@ export default function AddProjectForm() {
               <div className="flex gap-2">
                 <Button type="submit" disabled={isLoading}>
                   {isLoading ? 'Adding Project...' : 'Add Project'}
-                </Button>
-                <Button type="button" variant="outline" onClick={handleBackClick}>
-                  Back
                 </Button>
               </div>
             </form>
