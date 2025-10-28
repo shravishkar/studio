@@ -214,11 +214,6 @@ export async function getClient(tenantId: string, token: string, clientId: strin
 
 // Function to retrieve a single project by ID
 export async function getProject(tenantId: string, token: string, projectId: string): Promise<Project> {
-    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
-    if (!baseUrl) {
-        throw new Error("API base URL is not configured.");
-    }
-    
     // Fetch all projects for the tenant and find the specific one.
     const allProjectsData = await getProjects(tenantId, token);
     const project = allProjectsData.projects.find(p => p._id === projectId);
