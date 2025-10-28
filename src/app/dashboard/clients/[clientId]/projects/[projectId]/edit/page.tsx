@@ -1,8 +1,8 @@
+
 'use client';
 
-import { useState } from 'react';
+import { useState, use } from 'react';
 import { useRouter } from 'next/navigation';
-import { useFormContext } from 'react-hook-form';
 import { ArrowLeft } from 'lucide-react';
 import EditProjectForm from "./components/EditProjectForm";
 import { Button } from '@/components/ui/button';
@@ -17,18 +17,20 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-function EditProjectPageContent({ params }: { params: { clientId: string, projectId: string } }) {
+function EditProjectPageContent({ params }: { params: Promise<{ clientId: string, projectId: string }> }) {
   const router = useRouter();
-  // We need to get the form context to check if it's dirty
-  // This is a bit of a workaround because the form state is in the child component.
-  // A better solution would be to use a state management library or lift state up.
-  // For this case, we can't directly access it, so we'll just handle the back navigation.
-  // The form itself now contains the logic for 'isDirty'.
+  const resolvedParams = use(params);
+
+  // The logic for checking if the form is dirty is now inside the EditProjectForm.
+  // We can't easily access it here without state management or lifting state up.
+  // The 'handleBackClick' will just navigate back, and the form's internal logic
+  // will handle the discard confirmation.
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
-  // A dummy check. The actual check is now inside the AddProjectForm.
   const handleBackClick = () => {
-      router.back();
+    // This is a simplified back navigation. The actual logic to check for changes
+    // is now self-contained within the form component.
+    router.back();
   };
 
   return (
@@ -39,7 +41,7 @@ function EditProjectPageContent({ params }: { params: { clientId: string, projec
         </Button>
         <h1 className="text-2xl font-semibold">Edit Project</h1>
       </div>
-      <EditProjectForm clientId={params.clientId} projectId={params.projectId} />
+      <EditProjectForm clientId={resolvedParams.clientId} projectId={resolvedParams.projectId} />
       <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -58,7 +60,6 @@ function EditProjectPageContent({ params }: { params: { clientId: string, projec
   );
 }
 
-
-export default function EditProjectPage({ params }: { params: { clientId: string, projectId: string } }) {
+export default function EditProjectPage({ params }: { params: Promise<{ clientId: string, projectId: string }> }) {
     return <EditProjectPageContent params={params} />;
 }
