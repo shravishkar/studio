@@ -16,6 +16,16 @@ import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
 import { getClients, addProject } from '@/lib/api';
 import type { Client, NewProject } from '@/lib/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const formSchema = z.object({
   clientId: z.string().min(1, { message: "Client is required." }),
@@ -33,6 +43,7 @@ export default function AddProjectForm() {
   const { tenantId, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [clients, setClients] = useState<Client[]>([]);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -44,6 +55,16 @@ export default function AddProjectForm() {
       isActive: true,
     },
   });
+
+  const { formState: { isDirty } } = form;
+
+  const handleBackClick = () => {
+    if (isDirty) {
+      setShowDiscardDialog(true);
+    } else {
+      router.back();
+    }
+  };
 
   useEffect(() => {
     if (!tenantId || !token) return;
@@ -82,91 +103,112 @@ export default function AddProjectForm() {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Project Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div>
-              <Label htmlFor="clientId">Client</Label>
-              <Controller
-                control={form.control}
-                name="clientId"
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger id="clientId">
-                      <SelectValue placeholder="Select a client" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {clients.map(client => (
-                        <SelectItem key={client._id} value={client._id}>
-                          {client.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {form.formState.errors.clientId && <p className="text-red-500 text-xs mt-1">{form.formState.errors.clientId.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="name">Project Name</Label>
-              <Input id="name" placeholder="E.g. Website Redesign" {...form.register("name")} />
-              {form.formState.errors.name && <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message}</p>}
-            </div>
-            
-            <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" placeholder="Describe the project" {...form.register("description")} />
-                {form.formState.errors.description && <p className="text-red-500 text-xs mt-1">{form.formState.errors.description.message}</p>}
-            </div>
-
-            <div>
-              <Label htmlFor="status">Status</Label>
-               <Controller
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <SelectTrigger id="status">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {form.formState.errors.status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.status.message}</p>}
-            </div>
-
-            <div className="flex items-center space-x-2">
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Project Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div>
+                <Label htmlFor="clientId">Client</Label>
                 <Controller
-                    control={form.control}
-                    name="isActive"
-                    render={({ field }) => (
-                        <Switch
-                            id="isActive"
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                        />
-                    )}
+                  control={form.control}
+                  name="clientId"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger id="clientId">
+                        <SelectValue placeholder="Select a client" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {clients.map(client => (
+                          <SelectItem key={client._id} value={client._id}>
+                            {client.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
                 />
-                <Label htmlFor="isActive">Project is active</Label>
-            </div>
+                {form.formState.errors.clientId && <p className="text-red-500 text-xs mt-1">{form.formState.errors.clientId.message}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="name">Project Name</Label>
+                <Input id="name" placeholder="E.g. Website Redesign" {...form.register("name")} />
+                {form.formState.errors.name && <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message}</p>}
+              </div>
+              
+              <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea id="description" placeholder="Describe the project" {...form.register("description")} />
+                  {form.formState.errors.description && <p className="text-red-500 text-xs mt-1">{form.formState.errors.description.message}</p>}
+              </div>
+
+              <div>
+                <Label htmlFor="status">Status</Label>
+                 <Controller
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <SelectTrigger id="status">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {form.formState.errors.status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.status.message}</p>}
+              </div>
+
+              <div className="flex items-center space-x-2">
+                  <Controller
+                      control={form.control}
+                      name="isActive"
+                      render={({ field }) => (
+                          <Switch
+                              id="isActive"
+                              checked={field.value}
+                              onCheckedChange={field.onChange}
+                          />
+                      )}
+                  />
+                  <Label htmlFor="isActive">Project is active</Label>
+              </div>
 
 
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Adding Project...' : 'Add Project'}
-            </Button>
-          </form>
-        </FormProvider>
-      </CardContent>
-    </Card>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Adding Project...' : 'Add Project'}
+                </Button>
+                <Button type="button" variant="outline" onClick={handleBackClick}>
+                  Back
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
+        </CardContent>
+      </Card>
+      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to leave? Your changes will be discarded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.back()}>Discard</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

@@ -15,6 +15,16 @@ import type { Client, NewClient } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { PhoneNumberInput } from '@/components/ui/phone-number-input';
 import { isValidPhoneNumber } from 'react-phone-number-input';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 // Validation schema for updating a client
 const formSchema = z.object({
@@ -37,10 +47,21 @@ export default function EditClientForm({ clientId }: EditClientFormProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isNewImage, setIsNewImage] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const form = useForm<NewClient>({
     resolver: zodResolver(formSchema),
   });
+
+  const { formState: { isDirty } } = form;
+
+  const handleBackClick = () => {
+    if (isDirty) {
+      setShowDiscardDialog(true);
+    } else {
+      router.back();
+    }
+  };
 
   useEffect(() => {
     if (!tenantId || !token) return;
@@ -73,7 +94,7 @@ export default function EditClientForm({ clientId }: EditClientFormProps) {
       reader.onloadend = () => {
         const base64String = reader.result as string;
         setImagePreview(base64String);
-        form.setValue('profileImageBinary', base64String);
+        form.setValue('profileImageBinary', base64String, { shouldDirty: true });
         setIsNewImage(true);
       };
       reader.readAsDataURL(file);
@@ -93,7 +114,6 @@ export default function EditClientForm({ clientId }: EditClientFormProps) {
       delete submissionData.profileImageBinary;
     }
 
-
     try {
       const response = await updateClient(tenantId, token, clientId, submissionData);
       toast({ title: "Success", description: response.message });
@@ -106,45 +126,66 @@ export default function EditClientForm({ clientId }: EditClientFormProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Client Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <div className="flex items-center space-x-4">
-                  <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
-                  {imagePreview ? (
-                      <Image src={imagePreview} alt="Profile Preview" width={96} height={96} className="object-cover" />
-                  ) : (
-                      <span className="text-xs text-gray-500">Image Preview</span>
-                  )}
-                  </div>
-                  <Input type="file" onChange={handleFileChange} accept="image/*" />
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Client Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                <div className="flex items-center space-x-4">
+                    <div className="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
+                    {imagePreview ? (
+                        <Image src={imagePreview} alt="Profile Preview" width={96} height={96} className="object-cover" />
+                    ) : (
+                        <span className="text-xs text-gray-500">Image Preview</span>
+                    )}
+                    </div>
+                    <Input type="file" onChange={handleFileChange} accept="image/*" />
+                </div>
+
+              <div>
+                <Input placeholder="Name" {...form.register("name")} />
+                {form.formState.errors.name && <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message}</p>}
               </div>
 
-            <div>
-              <Input placeholder="Name" {...form.register("name")} />
-              {form.formState.errors.name && <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message}</p>}
-            </div>
+              <div>
+                <Input placeholder="Email" {...form.register("email")} />
+                {form.formState.errors.email && <p className="text-red-500 text-xs mt-1">{form.formState.errors.email.message}</p>}
+              </div>
 
-            <div>
-              <Input placeholder="Email" {...form.register("email")} />
-              {form.formState.errors.email && <p className="text-red-500 text-xs mt-1">{form.formState.errors.email.message}</p>}
-            </div>
-
-            <div>
-              <PhoneNumberInput name="phone" />
-               {form.formState.errors.phone && <p className="text-red-500 text-xs mt-1">{form.formState.errors.phone.message}</p>}
-            </div>
-
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Updating Client...' : 'Update Client'}
-            </Button>
-          </form>
-        </FormProvider>
-      </CardContent>
-    </Card>
+              <div>
+                <PhoneNumberInput name="phone" />
+                 {form.formState.errors.phone && <p className="text-red-500 text-xs mt-1">{form.formState.errors.phone.message}</p>}
+              </div>
+              
+              <div className="flex gap-2">
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Updating Client...' : 'Update Client'}
+                </Button>
+                <Button type="button" variant="outline" onClick={handleBackClick}>
+                  Back
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
+        </CardContent>
+      </Card>
+      <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to leave? Your changes will be discarded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.back()}>Discard</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

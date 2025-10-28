@@ -15,6 +15,16 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { getProject, updateProject } from '@/lib/api';
 import type { NewProject } from '@/lib/types';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -34,6 +44,7 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
   const { toast } = useToast();
   const { tenantId, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -43,6 +54,16 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
         status: 'active',
     }
   });
+
+  const { formState: { isDirty } } = form;
+
+  const handleBackClick = () => {
+    if (isDirty) {
+      setShowDiscardDialog(true);
+    } else {
+      router.back();
+    }
+  };
 
   useEffect(() => {
     if (!tenantId || !token || !clientId || !projectId) return;
@@ -83,53 +104,74 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Edit Project Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <FormProvider {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <div>
-              <Label htmlFor="name">Project Name</Label>
-              <Input id="name" {...form.register("name")} />
-              {form.formState.errors.name && <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message}</p>}
-            </div>
+    <>
+      <Card>
+        <CardHeader>
+          <CardTitle>Edit Project Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <FormProvider {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              <div>
+                <Label htmlFor="name">Project Name</Label>
+                <Input id="name" {...form.register("name")} />
+                {form.formState.errors.name && <p className="text-red-500 text-xs mt-1">{form.formState.errors.name.message}</p>}
+              </div>
 
-            <div>
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" {...form.register("description")} />
-              {form.formState.errors.description && <p className="text-red-500 text-xs mt-1">{form.formState.errors.description.message}</p>}
-            </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea id="description" {...form.register("description")} />
+                {form.formState.errors.description && <p className="text-red-500 text-xs mt-1">{form.formState.errors.description.message}</p>}
+              </div>
 
-            <div>
-              <Label htmlFor="status">Status</Label>
-              <Controller
-                control={form.control}
-                name="status"
-                render={({ field }) => (
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <SelectTrigger id="status">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                      <SelectItem value="completed">Completed</SelectItem>
-                      <SelectItem value="on-hold">On Hold</SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {form.formState.errors.status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.status.message}</p>}
-            </div>
+              <div>
+                <Label htmlFor="status">Status</Label>
+                <Controller
+                  control={form.control}
+                  name="status"
+                  render={({ field }) => (
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <SelectTrigger id="status">
+                        <SelectValue placeholder="Select status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                        <SelectItem value="on-hold">On Hold</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
+                {form.formState.errors.status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.status.message}</p>}
+              </div>
 
-            <Button type="submit" disabled={isLoading}>
-              {isLoading ? 'Updating Project...' : 'Update Project'}
-            </Button>
-          </form>
-        </FormProvider>
-      </CardContent>
-    </Card>
+              <div className="flex gap-2">
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Updating Project...' : 'Update Project'}
+                </Button>
+                 <Button type="button" variant="outline" onClick={handleBackClick}>
+                  Back
+                </Button>
+              </div>
+            </form>
+          </FormProvider>
+        </CardContent>
+      </Card>
+       <AlertDialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>You have unsaved changes</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to leave? Your changes will be discarded.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={() => router.back()}>Discard</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }
