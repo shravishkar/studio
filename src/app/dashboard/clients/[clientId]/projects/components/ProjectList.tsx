@@ -17,6 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import Link from 'next/link';
 
 interface ProjectListProps {
   projects: Project[];
@@ -67,7 +68,9 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem>View</DropdownMenuItem>
-                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link href={`/dashboard/projects/${project._id}/edit`}>Edit</Link>
+                  </DropdownMenuItem>
                   <DropdownMenuItem>Delete</DropdownMenuItem>
                   <DropdownMenuItem>Add Task</DropdownMenuItem>
                   <DropdownMenuItem>Upload File</DropdownMenuItem>

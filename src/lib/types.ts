@@ -20,7 +20,7 @@ export interface Project {
   };
   name: string;
   description: string;
-  status: string;
+  status: 'active' | 'inactive' | 'completed' | 'on-hold';
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

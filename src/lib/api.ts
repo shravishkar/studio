@@ -1,4 +1,4 @@
-import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject } from "./types";
+import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject, Project } from "./types";
 
 interface ApiListResponse {
     success: boolean;
@@ -18,6 +18,11 @@ interface ApiSingleResponse {
     data: Client;
 }
 
+interface ApiSingleProjectResponse {
+    success: boolean;
+    message: string;
+    data: Project;
+}
 
 interface ApiAddResponse {
     success: boolean;
@@ -105,8 +110,8 @@ export async function addClient(tenantId: string, token: string, newClient: NewC
     if (!baseUrl) {
         throw new Error("API base URL is not configured.");
     }
-clients
-    const url = `${baseUrl}//${tenantId}`;
+
+    const url = `${baseUrl}/clients/${tenantId}`;
 
     try {
         const response = await fetch(url, {
@@ -173,7 +178,7 @@ export async function addProject(tenantId: string, token: string, clientId: stri
 
 // Function to retrieve a single client by ID
 export async function getClient(tenantId: string, token: string, clientId: string): Promise<Client> {
-    const baseUrl = process.env.NEXT_PUBLIC_API__URL;
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     if (!baseUrl) {
         throw new Error("API base URL is not configured.");
     }
@@ -206,6 +211,40 @@ export async function getClient(tenantId: string, token: string, clientId: strin
     }
 }
 
+// Function to retrieve a single project by ID
+export async function getProject(tenantId: string, token: string, projectId: string): Promise<Project> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+    // Note: This endpoint is an assumption. You might need to adjust it based on your actual API structure.
+    const url = `${baseUrl}/projects/${tenantId}/details/${projectId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Failed to fetch project. Status: ${response.status}`);
+        }
+
+        const responseData: ApiSingleProjectResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData.data;
+    } catch (error) {
+        console.error("Error getting project:", error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred.");
+    }
+}
 
 // Function to update an existing client
 export async function updateClient(tenantId: string, token: string, clientId: string, updatedClient: Partial<NewClient>): Promise<ApiAddResponse> {
@@ -239,6 +278,42 @@ export async function updateClient(tenantId: string, token: string, clientId: st
         return responseData;
     } catch (error) {
         console.error("Error updating client:", error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred.");
+    }
+}
+
+// Function to update an existing project
+export async function updateProject(tenantId: string, token: string, clientId: string, projectId: string, updatedProject: Partial<NewProject>): Promise<ApiAddResponse> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+
+    const url = `${baseUrl}/projects/${tenantId}/${clientId}/${projectId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(updatedProject),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Failed to update project. Status: ${response.status}`);
+        }
+
+        const responseData: ApiAddResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData;
+    } catch (error) {
+        console.error("Error updating project:", error);
         throw error instanceof Error ? error : new Error("An unknown error occurred.");
     }
 }
