@@ -1,3 +1,4 @@
+
 import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject, Project } from "./types";
 
 interface ApiListResponse {
@@ -72,7 +73,6 @@ export async function getProjects(tenantId: string, token: string, clientId?: st
     }
 
     const url = clientId ? `${baseUrl}/projects/${tenantId}/${clientId}` : `${baseUrl}/projects/${tenantId}`;
-
 
     try {
         const response = await fetch(url, {
