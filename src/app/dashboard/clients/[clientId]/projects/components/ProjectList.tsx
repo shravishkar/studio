@@ -23,8 +23,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
-import { Eye, Edit, Trash2 } from 'lucide-react';
+import { Eye, Edit, Trash2, ListChecks, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 
 interface ProjectListProps {
@@ -119,11 +120,13 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2">
+                    {/* Project Actions */}
                     <Button 
                       variant="ghost" 
                       size="icon" 
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
                       className="hover:bg-blue-100 dark:hover:bg-blue-900 group"
+                      title="View Project"
                     >
                         <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
                     </Button>
@@ -132,11 +135,34 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                       size="icon" 
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
                       className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group"
+                      title="Edit Project"
                     >
                        <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
                     </Button>
-                    <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, project)} className="hover:bg-red-100 dark:hover:bg-red-900 group">
+                    <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, project)} className="hover:bg-red-100 dark:hover:bg-red-900 group" title="Delete Project">
                         <Trash2 className="h-5 w-5 text-red-500 transition-transform group-hover:scale-110" />
+                    </Button>
+
+                    <Separator orientation="vertical" className="h-6 mx-2" />
+
+                    {/* Task Actions */}
+                     <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={(e) => handleActionClick(e, () => { /* Logic for showing tasks */ })} 
+                      className="hover:bg-green-100 dark:hover:bg-green-900 group"
+                      title="View Tasks"
+                    >
+                        <ListChecks className="h-5 w-5 text-green-500 transition-transform group-hover:scale-110" />
+                    </Button>
+                     <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} 
+                      className="hover:bg-indigo-100 dark:hover:bg-indigo-900 group"
+                      title="Add Task"
+                    >
+                        <PlusCircle className="h-5 w-5 text-indigo-500 transition-transform group-hover:scale-110" />
                     </Button>
                 </div>
               </TableCell>
