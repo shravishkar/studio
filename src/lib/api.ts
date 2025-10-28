@@ -1,4 +1,3 @@
-
 import type { Client, GetClientsResponse, GetProjectsResponse, NewClient, NewProject, Project } from "./types";
 
 interface ApiListResponse {
@@ -213,16 +212,38 @@ export async function getClient(tenantId: string, token: string, clientId: strin
 }
 
 // Function to retrieve a single project by ID
-export async function getProject(tenantId: string, token: string, projectId: string): Promise<Project> {
-    // Fetch all projects for the tenant and find the specific one.
-    const allProjectsData = await getProjects(tenantId, token);
-    const project = allProjectsData.projects.find(p => p._id === projectId);
-
-    if (!project) {
-        throw new Error(`Project with ID ${projectId} not found.`);
+export async function getProject(tenantId: string, token: string, clientId: string, projectId: string): Promise<Project> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
     }
 
-    return project;
+    const url = `${baseUrl}/projects/${tenantId}/${clientId}/${projectId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Failed to fetch project. Status: ${response.status}`);
+        }
+
+        const responseData: ApiSingleProjectResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData.data;
+    } catch (error) {
+        console.error("Error getting project:", error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred.");
+    }
 }
 
 // Function to update an existing client

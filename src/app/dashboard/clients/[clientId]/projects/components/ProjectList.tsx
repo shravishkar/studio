@@ -24,6 +24,10 @@ interface ProjectListProps {
 }
 
 const ProjectList: FC<ProjectListProps> = ({ projects }) => {
+  const getClientId = (project: Project) => {
+    return typeof project.clientId === 'object' ? project.clientId._id : project.clientId;
+  }
+
   return (
     <Table>
       <TableHeader>
@@ -44,6 +48,13 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
             </TableCell>
             <TableCell>
               <Badge
+                variant={
+                  project.status === 'completed'
+                    ? 'default'
+                    : project.status === 'active'
+                    ? 'secondary'
+                    : 'outline'
+                }
                 className={
                   project.status === 'completed'
                     ? 'bg-green-500'
@@ -69,7 +80,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects }) => {
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem>View</DropdownMenuItem>
                   <DropdownMenuItem asChild>
-                    <Link href={`/dashboard/projects/${project._id}/edit`}>Edit</Link>
+                    <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`}>Edit</Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem>Delete</DropdownMenuItem>
                   <DropdownMenuItem>Add Task</DropdownMenuItem>

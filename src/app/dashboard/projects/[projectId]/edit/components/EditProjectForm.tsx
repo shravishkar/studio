@@ -25,43 +25,38 @@ const formSchema = z.object({
 type FormValues = Omit<NewProject, 'isActive'>;
 
 interface EditProjectFormProps {
+  clientId: string;
   projectId: string;
 }
 
-export default function EditProjectForm({ projectId }: EditProjectFormProps) {
+export default function EditProjectForm({ clientId, projectId }: EditProjectFormProps) {
   const router = useRouter();
   const { toast } = useToast();
   const { tenantId, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  const [clientId, setClientId] = useState<string | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
   });
 
   useEffect(() => {
-    if (!tenantId || !token || !projectId) return;
+    if (!tenantId || !token || !clientId || !projectId) return;
 
     const fetchProjectData = async () => {
       try {
-        const project = await getProject(tenantId, token, projectId);
+        const project = await getProject(tenantId, token, clientId, projectId);
         form.reset({
           name: project.name,
           description: project.description,
           status: project.status,
         });
-        if (typeof project.clientId === 'object') {
-          setClientId(project.clientId._id);
-        } else {
-          setClientId(project.clientId);
-        }
       } catch (error: any) {
         toast({ title: "Error", description: "Failed to fetch project data.", variant: "destructive" });
       }
     };
 
     fetchProjectData();
-  }, [tenantId, token, projectId, form, toast]);
+  }, [tenantId, token, clientId, projectId, form, toast]);
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (!tenantId || !token || !clientId) {
