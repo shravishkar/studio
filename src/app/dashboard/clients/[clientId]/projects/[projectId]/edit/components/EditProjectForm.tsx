@@ -37,6 +37,11 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+        name: '',
+        description: '',
+        status: 'active',
+    }
   });
 
   useEffect(() => {
