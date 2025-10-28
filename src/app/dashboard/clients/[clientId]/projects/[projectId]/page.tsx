@@ -1,12 +1,14 @@
 'use client';
 
+import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import ViewProjectDetails from "./components/ViewProjectDetails";
 
-export default function ViewProjectPage({ params }: { params: { clientId: string, projectId: string } }) {
+function ViewProjectPageContent({ params }: { params: Promise<{ clientId: string, projectId: string }> }) {
   const router = useRouter();
+  const resolvedParams = use(params);
   
   return (
     <div className="max-w-4xl mx-auto py-8">
@@ -16,7 +18,12 @@ export default function ViewProjectPage({ params }: { params: { clientId: string
         </Button>
         <h1 className="text-2xl font-semibold">Project Details</h1>
       </div>
-      <ViewProjectDetails clientId={params.clientId} projectId={params.projectId} />
+      <ViewProjectDetails clientId={resolvedParams.clientId} projectId={resolvedParams.projectId} />
     </div>
   );
+}
+
+
+export default function ViewProjectPage({ params }: { params: Promise<{ clientId: string, projectId: string }> }) {
+  return <ViewProjectPageContent params={params} />;
 }
