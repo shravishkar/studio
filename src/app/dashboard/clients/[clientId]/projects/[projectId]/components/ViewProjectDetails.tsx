@@ -11,6 +11,7 @@ import type { Project } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 
 interface ViewProjectDetailsProps {
   clientId: string;
@@ -86,14 +87,17 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   return (
     <Card>
       <CardHeader>
-        <div className="flex justify-between items-start">
-            <div>
-                <CardTitle className="text-2xl font-bold">{project.name}</CardTitle>
-                <CardDescription>Viewing details for project associated with {clientName}</CardDescription>
-            </div>
-            <Button onClick={() => router.push(`/dashboard/clients/${clientId}/projects/${projectId}/edit`)}>
-                Edit Project
-            </Button>
+        <div className="flex justify-between items-start mb-4">
+          <Button variant="ghost" size="icon" onClick={() => router.back()} className="mr-4">
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex-grow">
+            <CardTitle className="text-2xl font-bold">{project.name}</CardTitle>
+            <CardDescription>Viewing details for project associated with {clientName}</CardDescription>
+          </div>
+          <Button onClick={() => router.push(`/dashboard/clients/${clientId}/projects/${projectId}/edit`)}>
+              Edit Project
+          </Button>
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
