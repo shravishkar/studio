@@ -25,7 +25,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
 interface ProjectListProps {
@@ -49,14 +48,9 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
     setProjectToDelete(project);
   };
 
-  const handleEditClick = (e: React.MouseEvent, path: string) => {
+  const handleActionClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
-    router.push(path);
-  }
-
-  const handleViewClick = (e: React.MouseEvent, path: string) => {
-    e.stopPropagation();
-    router.push(path);
+    action();
   }
 
   const handleRowClick = (project: Project) => {
@@ -109,18 +103,12 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               <TableCell>
                 <Badge
                   variant={
-                    project.status === 'completed'
-                      ? 'default'
-                      : project.status === 'active'
-                      ? 'secondary'
-                      : 'outline'
+                    project.status === 'completed' ? 'default' : project.status === 'active' ? 'secondary' : 'outline'
                   }
                   className={
-                    project.status === 'completed'
-                      ? 'bg-green-500'
-                      : project.status === 'active'
-                      ? 'bg-blue-500'
-                      : 'bg-gray-500'
+                    project.status === 'completed' ? 'bg-green-500 hover:bg-green-600' :
+                    project.status === 'active' ? 'bg-blue-500 hover:bg-blue-600' :
+                    'bg-gray-500 hover:bg-gray-600'
                   }
                 >
                   {project.status}
@@ -134,7 +122,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={(e) => handleViewClick(e, `/dashboard/clients/${getClientId(project)}/projects/${project._id}`)} 
+                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
                       className="hover:bg-blue-100 dark:hover:bg-blue-900 group"
                     >
                         <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
@@ -142,7 +130,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={(e) => handleEditClick(e, `/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`)} 
+                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
                       className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group"
                     >
                        <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
