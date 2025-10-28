@@ -125,11 +125,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                   variant={
                     project.status === 'completed' ? 'default' : project.status === 'active' ? 'secondary' : 'outline'
                   }
-                  className={
-                    project.status === 'completed' ? 'bg-green-500 hover:bg-green-600' :
-                    project.status === 'active' ? 'bg-blue-500 hover:bg-blue-600' :
-                    'bg-gray-500 hover:bg-gray-600'
-                  }
                 >
                   {project.status}
                 </Badge>
@@ -139,53 +134,52 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2">
-                    {/* Project Actions Capsule */}
-                    <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1">
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                    <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1 gap-1">
+                      <button
                         onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
-                        className="hover:bg-blue-100 dark:hover:bg-blue-900 group h-8 w-8"
+                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-24 hover:bg-blue-500 transition-all duration-300 ease-in-out"
                         title="View Project"
                       >
-                          <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
-                      </Button>
-                      <Button 
-                        variant="ghost" 
-                        size="icon" 
+                        <Eye className="h-5 w-5 text-blue-500 group-hover:text-white transition-colors" />
+                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">View</span>
+                      </button>
+                      <button
                         onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
-                        className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group h-8 w-8"
+                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-24 hover:bg-yellow-500 transition-all duration-300 ease-in-out"
                         title="Edit Project"
                       >
-                         <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, project)} className="hover:bg-red-100 dark:hover:bg-red-900 group h-8 w-8" title="Delete Project">
-                          <Trash2 className="h-5 w-5 text-red-500 transition-transform group-hover:scale-110" />
-                      </Button>
+                        <Edit className="h-5 w-5 text-yellow-500 group-hover:text-white transition-colors" />
+                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Edit</span>
+                      </button>
+                      <button 
+                        onClick={(e) => handleDeleteClick(e, project)} 
+                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-28 hover:bg-red-500 transition-all duration-300 ease-in-out" 
+                        title="Delete Project"
+                      >
+                        <Trash2 className="h-5 w-5 text-red-500 group-hover:text-white transition-colors" />
+                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Delete</span>
+                      </button>
                     </div>
 
                     <Separator orientation="vertical" className="h-6 mx-1" />
-
-                    {/* Task Actions Capsule */}
-                     <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1">
-                       <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={(e) => handleActionClick(e, () => setTasksToShow(project))} 
-                        className="hover:bg-green-100 dark:hover:bg-green-900 group h-8 w-8"
+                    
+                    <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1 gap-1">
+                      <button
+                        onClick={(e) => handleActionClick(e, () => setTasksToShow(project))}
+                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-28 hover:bg-green-500 transition-all duration-300 ease-in-out"
                         title="View Tasks"
                       >
-                          <ListChecks className="h-5 w-5 text-green-500 transition-transform group-hover:scale-110" />
-                      </Button>
-                       <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} 
-                        className="hover:bg-indigo-100 dark:hover:bg-indigo-900 group h-8 w-8"
+                        <ListChecks className="h-5 w-5 text-green-500 group-hover:text-white transition-colors" />
+                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Tasks</span>
+                      </button>
+                      <button
+                        onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}
+                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-24 hover:bg-indigo-500 transition-all duration-300 ease-in-out"
                         title="Add Task"
                       >
-                          <PlusCircle className="h-5 w-5 text-indigo-500 transition-transform group-hover:scale-110" />
-                      </Button>
+                        <PlusCircle className="h-5 w-5 text-indigo-500 group-hover:text-white transition-colors" />
+                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Add</span>
+                      </button>
                     </div>
                 </div>
               </TableCell>
