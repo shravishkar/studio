@@ -101,19 +101,6 @@ export default function DashboardLayout({
                       </Link>
                   </SidebarMenuItem>
                 )}
-                 {item.href === '/dashboard/projects' && (
-                  <SidebarMenuItem className="ml-4">
-                     <Link href="/dashboard/projects/add" passHref>
-                        <SidebarMenuButton
-                          isActive={pathname === '/dashboard/projects/add'}
-                           tooltip="Create Project"
-                        >
-                          <PlusCircle size={18} />
-                          <span>Create Project</span>
-                        </SidebarMenuButton>
-                      </Link>
-                  </SidebarMenuItem>
-                )}
             </React.Fragment>
             ))}
           </SidebarMenu>
