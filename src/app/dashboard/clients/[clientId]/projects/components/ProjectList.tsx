@@ -1,4 +1,3 @@
-
 'use client';
 
 import { FC, useState } from 'react';
@@ -182,7 +181,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-indigo-100 dark:hover:bg-indigo-900/50 hover:w-auto hover:px-3" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}>
+                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-indigo-100 dark:hoverbg-indigo-900/50 hover:w-auto hover:px-3" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}>
                                     <PlusCircle className="h-4 w-4 text-indigo-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
                                     <span className="hidden group-hover:inline ml-2 text-sm text-indigo-600 dark:text-indigo-400">Add</span>
                                 </Button>
