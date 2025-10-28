@@ -1,4 +1,3 @@
-
 'use client';
 
 import { FC, useEffect, useState } from 'react';
@@ -45,6 +44,10 @@ const ClientProjectsPage: FC<PageProps> = ({ params }) => {
     fetchData();
   }, [tenantId, token, clientId]);
 
+  const handleProjectDeleted = (projectId: string) => {
+    setProjects(currentProjects => currentProjects.filter(p => p._id !== projectId));
+  };
+
   if (loading) {
     return (
       <div className="space-y-4">
@@ -63,7 +66,7 @@ const ClientProjectsPage: FC<PageProps> = ({ params }) => {
   return (
     <div>
       <h1 className="text-2xl font-bold mb-6">Projects for {client?.name}</h1>
-      <ProjectList projects={projects} />
+      <ProjectList projects={projects} onProjectDeleted={handleProjectDeleted} />
     </div>
   );
 };

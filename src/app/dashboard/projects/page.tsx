@@ -1,4 +1,3 @@
-
 'use client';
 
 import { useEffect, useState, useMemo } from 'react';
@@ -65,6 +64,10 @@ export default function ProjectsPage() {
       setLoading(false);
     }
   };
+  
+  const handleProjectDeleted = (projectId: string) => {
+    setProjects(currentProjects => currentProjects.filter(p => p._id !== projectId));
+  };
 
   const selectedClientName = useMemo(() => {
     return clients.find(c => c._id === selectedClientId)?.name || 'Projects';
@@ -101,7 +104,7 @@ export default function ProjectsPage() {
       ) : error ? (
         <div className="text-red-500 text-center">Error: {error}</div>
       ) : (
-        <ProjectList projects={projects} />
+        <ProjectList projects={projects} onProjectDeleted={handleProjectDeleted} />
       )}
     </div>
   );
