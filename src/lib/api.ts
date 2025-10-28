@@ -65,13 +65,14 @@ export async function getClients(tenantId: string, token: string, page: number, 
 }
 
 // Function to get projects for a specific client
-export async function getProjects(tenantId: string, token: string, clientId: string): Promise<GetProjectsResponse> {
+export async function getProjects(tenantId: string, token: string, clientId?: string): Promise<GetProjectsResponse> {
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     if (!baseUrl) {
         throw new Error("API base URL is not configured.");
     }
 
-    const url = `${baseUrl}/projects/${tenantId}/${clientId}`;
+    const url = clientId ? `${baseUrl}/projects/${tenantId}/${clientId}` : `${baseUrl}/projects/${tenantId}`;
+
 
     try {
         const response = await fetch(url, {
@@ -217,33 +218,16 @@ export async function getProject(tenantId: string, token: string, projectId: str
     if (!baseUrl) {
         throw new Error("API base URL is not configured.");
     }
-    // Note: This endpoint is an assumption. You might need to adjust it based on your actual API structure.
-    const url = `${baseUrl}/projects/${tenantId}/details/${projectId}`;
+    
+    // Assuming an endpoint to get all projects for a tenant if no client ID is specified
+    const allProjectsData = await getProjects(tenantId, token);
+    const project = allProjectsData.projects.find(p => p._id === projectId);
 
-    try {
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => null);
-            throw new Error(errorData?.message || `Failed to fetch project. Status: ${response.status}`);
-        }
-
-        const responseData: ApiSingleProjectResponse = await response.json();
-        if (!responseData.success) {
-            throw new Error(responseData.message || "API returned a non-successful response.");
-        }
-
-        return responseData.data;
-    } catch (error) {
-        console.error("Error getting project:", error);
-        throw error instanceof Error ? error : new Error("An unknown error occurred.");
+    if (!project) {
+        throw new Error(`Project with ID ${projectId} not found.`);
     }
+
+    return project;
 }
 
 // Function to update an existing client
