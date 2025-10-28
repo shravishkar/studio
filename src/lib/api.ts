@@ -118,7 +118,7 @@ export async function getTasks(tenantId: string, token: string, clientId: string
         throw new Error("API base URL is not configured.");
     }
 
-    const url = `${baseUrl}/tasks/${tenantId}/${clientId}/${projectId}`;
+    const url = `${baseUrl}/tasks/${projectId}`;
 
     try {
         const response = await fetch(url, {
@@ -229,8 +229,7 @@ export async function addTask(tenantId: string, token: string, clientId: string,
         throw new Error("API base URL is not configured.");
     }
 
-    // Assuming the API endpoint for tasks is /tasks/:tenantId/:clientId/:projectId
-    const url = `${baseUrl}/tasks/${tenantId}/${clientId}/${projectId}`;
+    const url = `${baseUrl}/tasks/${projectId}`;
 
     try {
         const response = await fetch(url, {
