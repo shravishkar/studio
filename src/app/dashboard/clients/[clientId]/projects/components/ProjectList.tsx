@@ -1,3 +1,4 @@
+
 import { FC, useState } from 'react';
 import { Project } from '@/lib/types';
 import { deleteProject } from '@/lib/api';
@@ -12,12 +13,6 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -28,7 +23,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal } from 'lucide-react';
+import { Eye, Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 
@@ -112,25 +107,21 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                 {new Date(project.updatedAt).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="h-8 w-8 p-0">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal className="h-4 w-4" />
+                <div className="flex justify-end items-center gap-2">
+                    <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}`} passHref>
+                        <Button variant="ghost" size="icon" asChild>
+                            <div><Eye className="h-4 w-4" /></div>
+                        </Button>
+                    </Link>
+                    <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`} passHref>
+                        <Button variant="ghost" size="icon" asChild>
+                           <div><Edit className="h-4 w-4" /></div>
+                        </Button>
+                    </Link>
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(project)}>
+                        <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}`}>View</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
-                      <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`}>Edit</Link>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => handleDeleteClick(project)} className="text-red-600">Delete</DropdownMenuItem>
-                    <DropdownMenuItem>Add Task</DropdownMenuItem>
-                    <DropdownMenuItem>Upload File</DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                </div>
               </TableCell>
             </TableRow>
           ))}
