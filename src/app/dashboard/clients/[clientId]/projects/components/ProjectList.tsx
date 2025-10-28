@@ -109,17 +109,17 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2">
                     <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}`} passHref>
-                        <Button variant="ghost" size="icon" asChild>
-                            <div><Eye className="h-4 w-4" /></div>
+                        <Button variant="ghost" size="icon" className="hover:bg-blue-100 dark:hover:bg-blue-900 group">
+                            <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
                         </Button>
                     </Link>
                     <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`} passHref>
-                        <Button variant="ghost" size="icon" asChild>
-                           <div><Edit className="h-4 w-4" /></div>
+                        <Button variant="ghost" size="icon" className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group">
+                           <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
                         </Button>
                     </Link>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(project)}>
-                        <Trash2 className="h-4 w-4 text-red-600" />
+                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(project)} className="hover:bg-red-100 dark:hover:bg-red-900 group">
+                        <Trash2 className="h-5 w-5 text-red-500 transition-transform group-hover:scale-110" />
                     </Button>
                 </div>
               </TableCell>
