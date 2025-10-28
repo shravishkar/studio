@@ -26,6 +26,7 @@ import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface ProjectListProps {
   projects: Project[];
@@ -35,6 +36,7 @@ interface ProjectListProps {
 const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const { tenantId, token } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
 
@@ -42,9 +44,26 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
     return typeof project.clientId === 'object' ? project.clientId._id : project.clientId;
   }
 
-  const handleDeleteClick = (project: Project) => {
+  const handleDeleteClick = (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation();
     setProjectToDelete(project);
   };
+
+  const handleEditClick = (e: React.MouseEvent, path: string) => {
+    e.stopPropagation();
+    router.push(path);
+  }
+
+  const handleViewClick = (e: React.MouseEvent, path: string) => {
+    e.stopPropagation();
+    router.push(path);
+  }
+
+  const handleRowClick = (project: Project) => {
+    const clientId = getClientId(project);
+    router.push(`/dashboard/clients/${clientId}/projects/${project._id}`);
+  };
+
 
   const handleConfirmDelete = async () => {
     if (!projectToDelete || !tenantId || !token) return;
@@ -78,7 +97,11 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
         </TableHeader>
         <TableBody>
           {projects.map((project) => (
-            <TableRow key={project._id}>
+            <TableRow 
+              key={project._id}
+              onClick={() => handleRowClick(project)}
+              className="cursor-pointer transition-colors hover:bg-muted/50"
+            >
               <TableCell>{project.name}</TableCell>
               <TableCell>
                 {typeof project.clientId === 'object' ? project.clientId.name : 'N/A'}
@@ -108,17 +131,23 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2">
-                    <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}`} passHref>
-                        <Button variant="ghost" size="icon" className="hover:bg-blue-100 dark:hover:bg-blue-900 group">
-                            <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
-                        </Button>
-                    </Link>
-                    <Link href={`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`} passHref>
-                        <Button variant="ghost" size="icon" className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group">
-                           <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
-                        </Button>
-                    </Link>
-                    <Button variant="ghost" size="icon" onClick={() => handleDeleteClick(project)} className="hover:bg-red-100 dark:hover:bg-red-900 group">
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={(e) => handleViewClick(e, `/dashboard/clients/${getClientId(project)}/projects/${project._id}`)} 
+                      className="hover:bg-blue-100 dark:hover:bg-blue-900 group"
+                    >
+                        <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="icon" 
+                      onClick={(e) => handleEditClick(e, `/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`)} 
+                      className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group"
+                    >
+                       <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
+                    </Button>
+                    <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, project)} className="hover:bg-red-100 dark:hover:bg-red-900 group">
                         <Trash2 className="h-5 w-5 text-red-500 transition-transform group-hover:scale-110" />
                     </Button>
                 </div>
