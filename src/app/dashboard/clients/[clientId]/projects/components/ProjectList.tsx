@@ -36,6 +36,7 @@ import { Eye, Edit, Trash2, ListChecks, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface ProjectListProps {
   projects: Project[];
@@ -98,7 +99,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   };
 
   return (
-    <>
+    <TooltipProvider>
       <Table>
         <TableHeader>
           <TableRow>
@@ -134,52 +135,42 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2">
-                    <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1 gap-1">
-                      <button
-                        onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
-                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-24 hover:bg-blue-500 transition-all duration-300 ease-in-out"
-                        title="View Project"
-                      >
-                        <Eye className="h-5 w-5 text-blue-500 group-hover:text-white transition-colors" />
-                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">View</span>
-                      </button>
-                      <button
-                        onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
-                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-24 hover:bg-yellow-500 transition-all duration-300 ease-in-out"
-                        title="Edit Project"
-                      >
-                        <Edit className="h-5 w-5 text-yellow-500 group-hover:text-white transition-colors" />
-                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Edit</span>
-                      </button>
-                      <button 
-                        onClick={(e) => handleDeleteClick(e, project)} 
-                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-28 hover:bg-red-500 transition-all duration-300 ease-in-out" 
-                        title="Delete Project"
-                      >
-                        <Trash2 className="h-5 w-5 text-red-500 group-hover:text-white transition-colors" />
-                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Delete</span>
-                      </button>
+                    <div className="flex items-center gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                           <Button variant="ghost" size="icon" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))}><Eye className="h-5 w-5 text-blue-500" /></Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View Project</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                           <Button variant="ghost" size="icon" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))}><Edit className="h-5 w-5 text-yellow-500" /></Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit Project</TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                           <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, project)}><Trash2 className="h-5 w-5 text-red-500" /></Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Delete Project</TooltipContent>
+                      </Tooltip>
                     </div>
 
-                    <Separator orientation="vertical" className="h-6 mx-1" />
+                    <Separator orientation="vertical" className="h-8 mx-2" />
                     
-                    <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1 gap-1">
-                      <button
-                        onClick={(e) => handleActionClick(e, () => setTasksToShow(project))}
-                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-28 hover:bg-green-500 transition-all duration-300 ease-in-out"
-                        title="View Tasks"
-                      >
-                        <ListChecks className="h-5 w-5 text-green-500 group-hover:text-white transition-colors" />
-                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Tasks</span>
-                      </button>
-                      <button
-                        onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}
-                        className="group flex items-center justify-center gap-2 h-8 w-8 rounded-full bg-transparent hover:w-24 hover:bg-indigo-500 transition-all duration-300 ease-in-out"
-                        title="Add Task"
-                      >
-                        <PlusCircle className="h-5 w-5 text-indigo-500 group-hover:text-white transition-colors" />
-                        <span className="text-white text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-200 delay-100">Add</span>
-                      </button>
+                    <div className="flex items-center gap-1">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                           <Button variant="ghost" size="icon" onClick={(e) => handleActionClick(e, () => setTasksToShow(project))}><ListChecks className="h-5 w-5 text-green-500" /></Button>
+                        </TooltipTrigger>
+                        <TooltipContent>View Tasks</TooltipContent>
+                      </Tooltip>
+                       <Tooltip>
+                        <TooltipTrigger asChild>
+                           <Button variant="ghost" size="icon" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}><PlusCircle className="h-5 w-5 text-indigo-500" /></Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Add Task</TooltipContent>
+                      </Tooltip>
                     </div>
                 </div>
               </TableCell>
@@ -248,7 +239,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </TooltipProvider>
   );
 };
 
