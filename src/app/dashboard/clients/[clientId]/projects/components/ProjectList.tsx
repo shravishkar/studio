@@ -1,6 +1,6 @@
 
 import { FC, useState } from 'react';
-import { Project } from '@/lib/types';
+import { Project, Task } from '@/lib/types';
 import { deleteProject } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
@@ -22,6 +22,13 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
 import { Eye, Edit, Trash2, ListChecks, PlusCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -33,12 +40,22 @@ interface ProjectListProps {
   onProjectDeleted: (projectId: string) => void;
 }
 
+const dummyTasks: Omit<Task, '_id' | 'projectId'>[] = [
+  { title: "Initial mockup design", status: 'done', createdDate: "2024-01-15", dueDate: "2024-01-20", visibleToClient: true },
+  { title: "Develop homepage layout", status: 'in-progress', createdDate: "2024-01-21", dueDate: "2024-02-10", visibleToClient: true },
+  { title: "Implement user authentication", status: 'todo', createdDate: "2024-02-01", dueDate: "2024-02-28", visibleToClient: false },
+  { title: "Deploy to staging server", status: 'todo', createdDate: "2024-02-15", dueDate: "2024-03-05", visibleToClient: false },
+];
+
+
 const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const { tenantId, token } = useAuth();
   const { toast } = useToast();
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [tasksToShow, setTasksToShow] = useState<Project | null>(null);
+
 
   const getClientId = (project: Project) => {
     return typeof project.clientId === 'object' ? project.clientId._id : project.clientId;
@@ -149,7 +166,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                      <Button 
                       variant="ghost" 
                       size="icon" 
-                      onClick={(e) => handleActionClick(e, () => { /* Logic for showing tasks */ })} 
+                      onClick={(e) => handleActionClick(e, () => setTasksToShow(project))} 
                       className="hover:bg-green-100 dark:hover:bg-green-900 group"
                       title="View Tasks"
                     >
@@ -170,6 +187,51 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
           ))}
         </TableBody>
       </Table>
+
+      {/* View Tasks Dialog */}
+      <Dialog open={!!tasksToShow} onOpenChange={(isOpen) => !isOpen && setTasksToShow(null)}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Tasks for {tasksToShow?.name}</DialogTitle>
+            <DialogDescription>
+              Here are all the tasks associated with this project.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Title</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Due Date</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {dummyTasks.map((task, index) => (
+                  <TableRow key={index}>
+                    <TableCell>{task.title}</TableCell>
+                    <TableCell>
+                      <Badge 
+                        variant={task.status === 'done' ? 'default' : task.status === 'in-progress' ? 'secondary' : 'outline'}
+                        className={
+                            task.status === 'done' ? 'bg-green-500 hover:bg-green-600' :
+                            task.status === 'in-progress' ? 'bg-blue-500 hover:bg-blue-600' :
+                            'bg-gray-500 hover:bg-gray-600'
+                        }
+                      >
+                        {task.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+
       <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
