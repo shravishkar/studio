@@ -74,4 +74,4 @@ export type NewClient = Omit<Client, '_id' | 'tenantId' | 'createdAt' | 'updated
 export type NewProject = Pick<Project, 'name' | 'description' | 'status' | 'isActive'>;
 
 // Type for creating a new task
-export type NewTask = Omit<Task, '_id' | 'projectId' | 'createdDate' | 'status' | 'isActive'>;
+export type NewTask = Pick<Task, 'title' | 'description' | 'status' | 'dueDate' | 'visibleToClient'>;
