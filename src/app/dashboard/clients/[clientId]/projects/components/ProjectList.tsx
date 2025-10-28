@@ -1,4 +1,6 @@
 
+'use client';
+
 import { FC, useState } from 'react';
 import { Project, Task } from '@/lib/types';
 import { deleteProject } from '@/lib/api';
@@ -137,50 +139,54 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2">
-                    {/* Project Actions */}
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
-                      className="hover:bg-blue-100 dark:hover:bg-blue-900 group"
-                      title="View Project"
-                    >
-                        <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
-                      className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group"
-                      title="Edit Project"
-                    >
-                       <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
-                    </Button>
-                    <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, project)} className="hover:bg-red-100 dark:hover:bg-red-900 group" title="Delete Project">
-                        <Trash2 className="h-5 w-5 text-red-500 transition-transform group-hover:scale-110" />
-                    </Button>
+                    {/* Project Actions Capsule */}
+                    <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
+                        className="hover:bg-blue-100 dark:hover:bg-blue-900 group h-8 w-8"
+                        title="View Project"
+                      >
+                          <Eye className="h-5 w-5 text-blue-500 transition-transform group-hover:scale-110" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
+                        className="hover:bg-yellow-100 dark:hover:bg-yellow-900 group h-8 w-8"
+                        title="Edit Project"
+                      >
+                         <Edit className="h-5 w-5 text-yellow-500 transition-transform group-hover:scale-110" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={(e) => handleDeleteClick(e, project)} className="hover:bg-red-100 dark:hover:bg-red-900 group h-8 w-8" title="Delete Project">
+                          <Trash2 className="h-5 w-5 text-red-500 transition-transform group-hover:scale-110" />
+                      </Button>
+                    </div>
 
-                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <Separator orientation="vertical" className="h-6 mx-1" />
 
-                    {/* Task Actions */}
-                     <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={(e) => handleActionClick(e, () => setTasksToShow(project))} 
-                      className="hover:bg-green-100 dark:hover:bg-green-900 group"
-                      title="View Tasks"
-                    >
-                        <ListChecks className="h-5 w-5 text-green-500 transition-transform group-hover:scale-110" />
-                    </Button>
-                     <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} 
-                      className="hover:bg-indigo-100 dark:hover:bg-indigo-900 group"
-                      title="Add Task"
-                    >
-                        <PlusCircle className="h-5 w-5 text-indigo-500 transition-transform group-hover:scale-110" />
-                    </Button>
+                    {/* Task Actions Capsule */}
+                     <div className="flex items-center bg-gray-100/50 dark:bg-gray-800/50 rounded-full p-1">
+                       <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => handleActionClick(e, () => setTasksToShow(project))} 
+                        className="hover:bg-green-100 dark:hover:bg-green-900 group h-8 w-8"
+                        title="View Tasks"
+                      >
+                          <ListChecks className="h-5 w-5 text-green-500 transition-transform group-hover:scale-110" />
+                      </Button>
+                       <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} 
+                        className="hover:bg-indigo-100 dark:hover:bg-indigo-900 group h-8 w-8"
+                        title="Add Task"
+                      >
+                          <PlusCircle className="h-5 w-5 text-indigo-500 transition-transform group-hover:scale-110" />
+                      </Button>
+                    </div>
                 </div>
               </TableCell>
             </TableRow>
