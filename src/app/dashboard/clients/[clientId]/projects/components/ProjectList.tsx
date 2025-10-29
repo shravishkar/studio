@@ -155,31 +155,30 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
 
-                    {/* Project Actions Capsule */}
                     <div className="flex items-center gap-1 bg-muted p-1 rounded-full">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:w-auto hover:px-3" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))}>
-                                    <Eye className="h-4 w-4 text-blue-500 group-hover:text-blue-600 dark:group-hover:text-blue-400" />
-                                    <span className="hidden group-hover:inline ml-2 text-sm text-blue-600 dark:text-blue-400">View</span>
+                                <Button variant="ghost" size="icon" className="group relative h-7 w-7 rounded-full" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))}>
+                                    <Eye className="h-4 w-4 text-blue-500" />
+                                    <span className="absolute left-full ml-2 hidden group-hover:block bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 px-2 py-1 rounded-md text-sm whitespace-nowrap">View</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>View Project</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-yellow-100 dark:hover:bg-yellow-900/50 hover:w-auto hover:px-3" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))}>
-                                    <Edit className="h-4 w-4 text-yellow-500 group-hover:text-yellow-600 dark:group-hover:text-yellow-400" />
-                                    <span className="hidden group-hover:inline ml-2 text-sm text-yellow-600 dark:text-yellow-400">Edit</span>
+                                <Button variant="ghost" size="icon" className="group relative h-7 w-7 rounded-full" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))}>
+                                    <Edit className="h-4 w-4 text-yellow-500" />
+                                    <span className="absolute left-full ml-2 hidden group-hover:block bg-yellow-100 dark:bg-yellow-900/50 text-yellow-600 dark:text-yellow-400 px-2 py-1 rounded-md text-sm whitespace-nowrap">Edit</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>Edit Project</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-red-100 dark:hover:bg-red-900/50 hover:w-auto hover:px-3" onClick={(e) => handleDeleteClick(e, project)}>
-                                    <Trash2 className="h-4 w-4 text-red-500 group-hover:text-red-600 dark:group-hover:text-red-400" />
-                                    <span className="hidden group-hover:inline ml-2 text-sm text-red-600 dark:text-red-400">Delete</span>
+                                <Button variant="ghost" size="icon" className="group relative h-7 w-7 rounded-full" onClick={(e) => handleDeleteClick(e, project)}>
+                                    <Trash2 className="h-4 w-4 text-red-500" />
+                                    <span className="absolute left-full ml-2 hidden group-hover:block bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 px-2 py-1 rounded-md text-sm whitespace-nowrap">Delete</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>Delete Project</TooltipContent>
@@ -188,22 +187,21 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
 
                     <Separator orientation="vertical" className="h-6" />
 
-                    {/* Task Actions Capsule */}
                     <div className="flex items-center gap-1 bg-muted p-1 rounded-full">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-green-100 dark:hover:bg-green-900/50 hover:w-auto hover:px-3" onClick={(e) => handleViewTasks(e, project)}>
-                                    <ListChecks className="h-4 w-4 text-green-500 group-hover:text-green-600 dark:group-hover:text-green-400" />
-                                    <span className="hidden group-hover:inline ml-2 text-sm text-green-600 dark:text-green-400">Tasks</span>
+                                <Button variant="ghost" size="icon" className="group relative h-7 w-7 rounded-full" onClick={(e) => handleViewTasks(e, project)}>
+                                    <ListChecks className="h-4 w-4 text-green-500" />
+                                     <span className="absolute left-full ml-2 hidden group-hover:block bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400 px-2 py-1 rounded-md text-sm whitespace-nowrap">Tasks</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>View Tasks</TooltipContent>
                         </Tooltip>
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-indigo-100 dark:hoverbg-indigo-900/50 hover:w-auto hover:px-3" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}>
-                                    <PlusCircle className="h-4 w-4 text-indigo-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400" />
-                                    <span className="hidden group-hover:inline ml-2 text-sm text-indigo-600 dark:text-indigo-400">Add</span>
+                                <Button variant="ghost" size="icon" className="group relative h-7 w-7 rounded-full" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}>
+                                    <PlusCircle className="h-4 w-4 text-indigo-500" />
+                                    <span className="absolute left-full ml-2 hidden group-hover:block bg-indigo-100 dark:bg-indigo-900/50 text-indigo-600 dark:text-indigo-400 px-2 py-1 rounded-md text-sm whitespace-nowrap">Add</span>
                                 </Button>
                             </TooltipTrigger>
                             <TooltipContent>Add Task</TooltipContent>
@@ -216,7 +214,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
         </TableBody>
       </Table>
 
-      {/* View Tasks Dialog */}
       <Dialog open={!!tasksToShow} onOpenChange={(isOpen) => !isOpen && setTasksToShow(null)}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
