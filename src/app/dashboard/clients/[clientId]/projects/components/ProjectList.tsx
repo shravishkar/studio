@@ -39,11 +39,6 @@ import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { cn } from '@/lib/utils';
 
-interface ProjectListProps {
-  projects: Project[];
-  onProjectDeleted: (projectId: string) => void;
-}
-
 interface ActionButtonProps {
   onClick: (e: React.MouseEvent) => void;
   tooltip: string;
@@ -54,20 +49,20 @@ interface ActionButtonProps {
   iconColorClass: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className, hoverColorClass, iconColorClass }) => {
+const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, hoverColorClass, iconColorClass }) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
           className={cn(
-            "group/action relative flex h-9 w-9 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out",
-            "hover:w-24",
-            hoverColorClass,
-            className
+            "group/action relative flex h-9 w-9 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out hover:w-24",
+            hoverColorClass
           )}
         >
-          <div className={cn("h-4 w-4 transition-colors group-hover/action:text-white", iconColorClass)}>{children}</div>
+          <div className={cn("h-4 w-4 transition-colors group-hover/action:text-white", iconColorClass)}>
+            {children}
+          </div>
           <span className="absolute left-10 whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-opacity duration-200 group-hover/action:opacity-100">
             {label}
           </span>
@@ -286,3 +281,5 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
 };
 
 export default ProjectList;
+
+    
