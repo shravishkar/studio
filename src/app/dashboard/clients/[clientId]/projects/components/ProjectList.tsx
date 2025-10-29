@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { useRouter } from 'next/navigation';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cn } from '@/lib/utils';
 
 interface ProjectListProps {
   projects: Project[];
@@ -48,30 +49,38 @@ interface ActionButtonProps {
   tooltip: string;
   children: React.ReactNode;
   label: string;
+  variant?: 'default' | 'destructive';
   className?: string;
+  iconClassName?: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className }) => (
-  <Tooltip>
-    <TooltipTrigger asChild>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 shrink-0 rounded-full data-[hover]:w-auto data-[hover]:px-2"
-        onClick={onClick}
-      >
-        <div className="flex items-center gap-2">
-          {children}
-          <span className="hidden text-xs group-hover/actions:inline-block group-hover/actions:animate-in group-hover/actions:fade-in group-hover/actions:duration-300">
-            {label}
-          </span>
-        </div>
-      </Button>
-    </TooltipTrigger>
-    <TooltipContent side="top" className="group-hover/actions:hidden">{tooltip}</TooltipContent>
-  </Tooltip>
-);
-
+const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, variant, className, iconClassName }) => {
+  const isDestructive = variant === 'destructive';
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            "h-8 w-8 shrink-0 rounded-full",
+            isDestructive ? 'bg-green-500 hover:bg-green-600 text-white group-hover:w-20' : 'group-hover:w-20',
+            className
+          )}
+          onClick={onClick}
+        >
+          <div className="flex items-center gap-2">
+            <div className={cn('h-4 w-4', iconClassName)}>{children}</div>
+            <span className="hidden text-xs font-semibold group-hover:inline-block">
+              {label}
+            </span>
+          </div>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top">{tooltip}</TooltipContent>
+    </Tooltip>
+  );
+};
 
 const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const { tenantId, token } = useAuth();
@@ -156,7 +165,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
             <TableHead>Client Name</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Last Updated</TableHead>
-            <TableHead className="text-right w-[300px]">Actions</TableHead>
+            <TableHead className="text-right w-[240px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -185,26 +194,26 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
                     
-                    <div className="group/actions flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out hover:w-auto">
-                        <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View">
-                            <Eye className="h-4 w-4 text-blue-500" />
+                    <div className="group flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out">
+                        <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" iconClassName="text-blue-500" >
+                            <Eye />
                         </ActionButton>
-                        <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit">
-                            <Edit className="h-4 w-4 text-yellow-500" />
+                        <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" iconClassName="text-yellow-500">
+                            <Edit />
                         </ActionButton>
-                         <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete">
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                         <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" variant="destructive">
+                            <Trash2 />
                         </ActionButton>
                     </div>
 
                     <Separator orientation="vertical" className="h-6" />
 
-                    <div className="group/actions flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out hover:w-auto">
-                        <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks">
-                           <ListChecks className="h-4 w-4 text-green-500" />
+                    <div className="group flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out">
+                        <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" iconClassName="text-green-500">
+                           <ListChecks />
                         </ActionButton>
-                        <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add">
-                            <PlusCircle className="h-4 w-4 text-indigo-500" />
+                        <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" iconClassName="text-indigo-500">
+                            <PlusCircle />
                         </ActionButton>
                     </div>
 
