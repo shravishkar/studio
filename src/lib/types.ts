@@ -1,76 +1,92 @@
 
 export interface Client {
-  _id: string;
-  tenantId: string;
-  name: string;
-  email: string;
-  phone?: string;
-  isActive: boolean;
-  profileUrl?: string;
-  createdAt: string;
-  updatedAt: string;
+    _id: string;
+    tenantId: string;
+    name: string;
+    email: string;
+    phone: string;
+    address: string;
+    profileImage?: string; 
+    createdAt: string;
+    updatedAt: string;
+    profileImageBinary?: string;
+    isActive: boolean;
+}
+
+export interface APIResponse<T> {
+    data: T;
+}
+
+export interface PaginatedResponse<T> {
+    items: T[];
+    totalPages: number;
+    currentPage: number;
 }
 
 export interface Project {
-  _id: string;
-  tenantId: string;
-  clientId: string | {
     _id: string;
+    clientId: string | Client;
+    tenantId: string;
     name: string;
-    email: string;
-  };
-  name: string;
-  description: string;
-  status: 'active' | 'inactive' | 'completed' | 'on-hold';
-  isActive: boolean;
-  createdAt: string;
-  updatedAt: string;
+    description: string;
+    status: 'active' | 'completed' | 'on-hold';
+    isActive: boolean;
+    createdAt: string;
+    updatedAt: string;
+    projectFileBinary?: string; 
+    projectFileName?: string;
+    projectFileType?: string;
 }
 
 export interface Task {
-  _id: string;
-  projectId: string | {
     _id: string;
+    projectId: string;
+    title: string;
+    description: string;
+    status: 'todo' | 'in-progress' | 'in-review' | 'completed';
+    dueDate: string;
+    createdAt: string;
+    updatedAt: string;
+}
+
+export interface NewClient {
     name: string;
-  };
-  title: string;
-  description: string;
-  status: 'todo' | 'in-progress' | 'completed' | 'in-review';
-  createdDate: string;
-  dueDate: string;
-  visibleToClient: boolean;
-  isActive: boolean;
+    email: string;
+    phone?: string;
+    address?: string;
+    profileImageBinary?: string; 
+    isActive?: boolean;
 }
 
-export interface Pagination {
-  current: number;
-  total: number;
-  count: number;
-  totalRecords: number;
+export interface NewProject {
+    name: string;
+    description: string;
+    status: 'active' | 'completed' | 'on-hold';
+    isActive?: boolean;
+    clientId: string;
+    projectFileBinary?: string; 
+    projectFileName?: string;
+    projectFileType?: string;
 }
 
-export interface GetClientsResponse {
-  clients: Client[];
-  pagination: Pagination;
+
+export interface NewTask {
+    title: string;
+    description: string;
+    status: 'todo' | 'in-progress' | 'in-review' | 'completed';
+    dueDate: string;
 }
 
-export interface GetProjectsResponse {
-  projects: Project[];
-  pagination: Pagination;
+export interface User {
+    id: string;
+    email: string;
+    
 }
 
-export interface GetTasksResponse {
-  tasks: Task[];
-  pagination: Pagination;
+export interface AuthState {
+    user: User | null;
+    token: string | null;
+    tenantId: string | null;
+    isLoading: boolean;
+    error: string | null;
 }
-
-// Type for creating a new client, omits server-generated fields
-export type NewClient = Omit<Client, '_id' | 'tenantId' | 'createdAt' | 'updatedAt' | 'isActive' | 'profileUrl'> & {
-    profileImageBinary?: string;
-};
-
-// Type for creating a new project, omits server-generated fields
-export type NewProject = Pick<Project, 'name' | 'description' | 'status' | 'isActive'>;
-
-// Type for creating a new task
-export type NewTask = Pick<Task, 'title' | 'description' | 'status' | 'dueDate' | 'visibleToClient'>;

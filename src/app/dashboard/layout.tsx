@@ -53,9 +53,13 @@ export default function DashboardLayout({
   const pathname = usePathname();
 
   const getPageTitle = () => {
+    if (pathname.includes('/projects')) {
+      return 'Projects';
+    }
     const currentItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
     return currentItem ? currentItem.label : "Dashboard";
   };
+  const pageTitle = getPageTitle();
 
   if (isLoading || !tenantId) {
     return (
@@ -80,7 +84,7 @@ export default function DashboardLayout({
                 <SidebarMenuItem>
                   <Link href={item.href} passHref>
                     <SidebarMenuButton
-                      isActive={pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href))}
+                      isActive={pageTitle === item.label}
                       tooltip={item.label}
                     >
                       <item.icon />
@@ -120,7 +124,7 @@ export default function DashboardLayout({
         <header className="sticky top-0 z-10 flex h-14 items-center gap-4 border-b bg-background px-4 sm:static sm:h-auto sm:border-0 sm:bg-transparent sm:px-6 sm:py-4">
           <SidebarTrigger className="sm:hidden" />
           <h1 className="text-xl font-semibold sm:text-2xl font-headline">
-            {getPageTitle()}
+            {pageTitle}
           </h1>
           <div className="ml-auto">
             <DropdownMenu>

@@ -1,6 +1,7 @@
+
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
 import { useForm, SubmitHandler, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -15,25 +16,15 @@ import { Label } from '@/components/ui/label';
 import { useAuth } from '@/hooks/use-auth';
 import { getProject, updateProject } from '@/lib/api';
 import type { NewProject } from '@/lib/types';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import { ArrowLeft } from 'lucide-react';
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   description: z.string().min(10, { message: "Description must be at least 10 characters." }),
-  status: z.enum(['active', 'inactive', 'completed', 'on-hold']),
+  status: z.enum(['active', 'completed', 'on-hold']),
+  projectFile: z.any().optional(),
 });
 
-type FormValues = Omit<NewProject, 'isActive'>;
+type FormValues = z.infer<typeof formSchema>;
 
 interface EditProjectFormProps {
   clientId: string;
@@ -45,6 +36,7 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
   const { toast } = useToast();
   const { tenantId, token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -75,6 +67,12 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
     fetchProjectData();
   }, [tenantId, token, clientId, projectId, form, toast]);
 
+  const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
+    if (event.target.files && event.target.files.length > 0) {
+      setSelectedFile(event.target.files[0]);
+    }
+  };
+
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
     if (!tenantId || !token || !clientId) {
       toast({ title: "Error", description: "Required information is missing to update the project.", variant: "destructive" });
@@ -83,16 +81,43 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
 
     setIsLoading(true);
 
-    try {
-      await updateProject(tenantId, token, clientId, projectId, data);
-      toast({ title: "Success", description: "Project updated successfully." });
-      router.push('/dashboard/projects');
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to update project.", variant: "destructive" });
-    } finally {
-      setIsLoading(false);
+    const updateData: Partial<NewProject> = {
+        name: data.name,
+        description: data.description,
+        status: data.status,
+    };
+
+    if (selectedFile) {
+        const reader = new FileReader();
+        reader.readAsDataURL(selectedFile);
+        reader.onloadend = async () => {
+            const base64String = reader.result as string;
+            updateData.projectFileBinary = base64String;
+            updateData.projectFileName = selectedFile.name;
+            updateData.projectFileType = selectedFile.type;
+            await saveProject(updateData);
+        };
+        reader.onerror = (error) => {
+            console.error('Error converting file to base64:', error);
+            toast({ title: 'Error', description: 'Failed to process file.', variant: 'destructive' });
+            setIsLoading(false);
+        };
+    } else {
+        await saveProject(data);
     }
   };
+
+  const saveProject = async (data: Partial<NewProject>) => {
+    try {
+        await updateProject(tenantId!, token!, clientId, projectId, data);
+        toast({ title: "Success", description: "Project updated successfully." });
+        router.push(`/dashboard/clients/${clientId}/projects/${projectId}`);
+    } catch (error: any) {
+        toast({ title: "Error", description: error.message || "Failed to update project.", variant: "destructive" });
+    } finally {
+        setIsLoading(false);
+    }
+  }
 
   return (
     <>
@@ -127,7 +152,6 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
                         <SelectItem value="completed">Completed</SelectItem>
                         <SelectItem value="on-hold">On Hold</SelectItem>
                       </SelectContent>
@@ -136,6 +160,12 @@ export default function EditProjectForm({ clientId, projectId }: EditProjectForm
                 />
                 {form.formState.errors.status && <p className="text-red-500 text-xs mt-1">{form.formState.errors.status.message}</p>}
               </div>
+
+                <div>
+                    <Label htmlFor="projectFile">Project File (Optional)</Label>
+                    <Input id="projectFile" type="file" onChange={handleFileChange} />
+                    {form.formState.errors.projectFile && <p className="text-red-500 text-xs mt-1">{form.formState.errors.projectFile.message as string}</p>}
+                </div>
 
               <div className="flex gap-2">
                 <Button type="submit" disabled={isLoading}>

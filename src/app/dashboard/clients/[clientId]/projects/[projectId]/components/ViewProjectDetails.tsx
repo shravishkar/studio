@@ -11,7 +11,7 @@ import type { Project, Task } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Loader2, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Loader2, Edit, Trash2, Download } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -165,6 +165,17 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
     }
   };
 
+  const handleDownloadFile = () => {
+    if (project?.projectFileBinary) {
+      const link = document.createElement('a');
+      link.href = project.projectFileBinary;
+      link.download = project.projectFileName || 'download';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  };
+
   if (isLoading) {
     return (
       <Card>
@@ -250,6 +261,19 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
               <p className="text-muted-foreground">{new Date(project.updatedAt).toLocaleDateString()}</p>
             </div>
           </div>
+
+          {project.projectFileBinary && (
+            <div>
+                <h3 className="font-semibold text-lg mb-2">Project File</h3>
+                <div className="flex items-center space-x-4">
+                    <p className="text-muted-foreground">{project.projectFileName}</p>
+                    <Button onClick={handleDownloadFile} size="sm">
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                    </Button>
+                </div>
+            </div>
+            )}
         </CardContent>
       </Card>
 
