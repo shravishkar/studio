@@ -1,9 +1,9 @@
 
 'use client';
 
-import { FC, useState, MouseEvent } from 'react';
+import { FC, useState, MouseEvent, useCallback } from 'react';
 import { Project, Task } from '@/lib/types';
-import { deleteProject, getTasks, deleteTask } from '@/lib/api';
+import { deleteProject, getTasks } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -38,12 +38,6 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import AddTaskForm from '../../projects/[projectId]/components/AddTaskForm';
-import ViewTaskDetails from '../../projects/[projectId]/components/ViewTaskDetails';
-
-interface ProjectListProps {
-  projects: Project[];
-  onProjectDeleted: (projectId: string) => void;
-}
 
 interface ActionButtonProps {
   onClick: (e: React.MouseEvent) => void;
@@ -86,9 +80,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [projectForNewTask, setProjectForNewTask] = useState<Project | null>(null);
-  const [taskToView, setTaskToView] = useState<Task | null>(null);
-  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [isDeletingTask, setIsDeletingTask] = useState(false);
 
   const getClientId = (project: Project) => {
     return typeof project.clientId === 'object' ? project.clientId._id : project.clientId;
@@ -154,22 +145,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
       toast({ title: "Error", description: error.message || "Failed to delete project.", variant: "destructive" });
     } finally {
       setIsDeleting(false);
-    }
-  };
-
-  const handleConfirmDeleteTask = async () => {
-    if (!taskToDelete || !tasksToShow || !tenantId || !token) return;
-
-    setIsDeletingTask(true);
-    try {
-      await deleteTask(tenantId, token, tasksToShow._id, taskToDelete._id);
-      toast({ title: "Success", description: "Task deleted successfully." });
-      setTasks(tasks.filter(t => t._id !== taskToDelete._id));
-      setTaskToDelete(null);
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to delete task.", variant: "destructive" });
-    } finally {
-      setIsDeletingTask(false);
     }
   };
 
@@ -278,7 +253,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <TableHead>Title</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Due Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -293,18 +267,10 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                         </Badge>
                         </TableCell>
                         <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="icon" onClick={() => setTaskToView(task)}>
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                          <Button variant="ghost" size="icon" onClick={() => setTaskToDelete(task)}>
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </TableCell>
                     </TableRow>
                     )) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                            <TableCell colSpan={3} className="text-center">No tasks found for this project.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>
@@ -347,32 +313,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <Dialog open={!!taskToView} onOpenChange={(isOpen) => !isOpen && setTaskToView(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Task Details</DialogTitle>
-          </DialogHeader>
-          {taskToView && <ViewTaskDetails task={taskToView} />}
-        </DialogContent>
-      </Dialog>
-      
-      <AlertDialog open={!!taskToDelete} onOpenChange={(isOpen) => !isOpen && setTaskToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the task.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDeleteTask} disabled={isDeletingTask}>
-              {isDeletingTask ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

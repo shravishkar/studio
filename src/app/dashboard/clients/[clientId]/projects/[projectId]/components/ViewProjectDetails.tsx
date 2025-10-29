@@ -6,27 +6,15 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/hooks/use-auth';
-import { getProject, getTasks, deleteTask } from '@/lib/api';
+import { getProject, getTasks } from '@/lib/api';
 import type { Project, Task } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Loader2, Eye, Trash2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/components/ui/dialog';
+import { PlusCircle, Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import AddTaskForm from './AddTaskForm';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import ViewTaskDetails from './ViewTaskDetails';
-
 
 interface ViewProjectDetailsProps {
   clientId: string;
@@ -42,9 +30,6 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
-  const [taskToView, setTaskToView] = useState<Task | null>(null);
-  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
-  const [isDeletingTask, setIsDeletingTask] = useState(false);
 
   const fetchProjectAndTasks = useCallback(async () => {
     if (!tenantId || !token || !clientId || !projectId) {
@@ -75,22 +60,6 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   useEffect(() => {
     fetchProjectAndTasks();
   }, [fetchProjectAndTasks]);
-
-  const handleConfirmDeleteTask = async () => {
-    if (!taskToDelete || !tenantId || !token) return;
-
-    setIsDeletingTask(true);
-    try {
-      await deleteTask(tenantId, token, projectId, taskToDelete._id);
-      toast({ title: "Success", description: "Task deleted successfully." });
-      setTasks(tasks.filter(t => t._id !== taskToDelete._id));
-      setTaskToDelete(null);
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to delete task.", variant: "destructive" });
-    } finally {
-      setIsDeletingTask(false);
-    }
-  };
 
   if (isLoading) {
     return (
@@ -219,7 +188,6 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                   <TableHead>Title</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Due Date</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -230,18 +198,10 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                       <Badge>{task.status}</Badge>
                     </TableCell>
                     <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
-                    <TableCell className="text-right">
-                       <Button variant="ghost" size="icon" onClick={() => setTaskToView(task)}>
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setTaskToDelete(task)}>
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
                   </TableRow>
                 )) : (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                    <TableCell colSpan={3} className="text-center">No tasks found for this project.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -249,32 +209,6 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
           )}
         </CardContent>
       </Card>
-
-      <Dialog open={!!taskToView} onOpenChange={(isOpen) => !isOpen && setTaskToView(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Task Details</DialogTitle>
-          </DialogHeader>
-          {taskToView && <ViewTaskDetails task={taskToView} />}
-        </DialogContent>
-      </Dialog>
-      
-      <AlertDialog open={!!taskToDelete} onOpenChange={(isOpen) => !isOpen && setTaskToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This action cannot be undone. This will permanently delete the task.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmDeleteTask} disabled={isDeletingTask}>
-              {isDeletingTask ? 'Deleting...' : 'Delete'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
