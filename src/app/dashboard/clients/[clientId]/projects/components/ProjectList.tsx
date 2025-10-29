@@ -1,9 +1,9 @@
 
 'use client';
 
-import { FC, useState } from 'react';
+import { FC, useState, MouseEvent } from 'react';
 import { Project, Task } from '@/lib/types';
-import { deleteProject, getTasks } from '@/lib/api';
+import { deleteProject, getTasks, deleteTask } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -38,6 +38,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import AddTaskForm from '../../projects/[projectId]/components/AddTaskForm';
+import ViewTaskDetails from '../../projects/[projectId]/components/ViewTaskDetails';
 
 interface ProjectListProps {
   projects: Project[];
@@ -49,26 +50,26 @@ interface ActionButtonProps {
   children: React.ReactNode;
   label: string;
   className?: string;
-  hoverClassName?: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, className, hoverClassName }) => {
+const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, className }) => {
   return (
     <button
       onClick={onClick}
       className={cn(
         "group/action relative flex h-9 w-9 items-center justify-center rounded-full border bg-background transition-all duration-300 ease-in-out",
         "hover:w-24",
-        className,
-        hoverClassName
+        className
       )}
     >
-      <div className="absolute flex items-center justify-center transition-opacity duration-300 group-hover/action:opacity-0">
+      <div className="absolute flex h-full w-full items-center justify-center opacity-100 transition-opacity duration-300 group-hover/action:opacity-0">
         {children}
       </div>
-      <span className="pointer-events-none absolute inset-0 flex items-center justify-center whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover/action:pointer-events-auto group-hover/action:opacity-100">
-        {label}
-      </span>
+      <div className="absolute flex h-full w-full items-center justify-center opacity-0 transition-opacity duration-300 group-hover/action:opacity-100">
+        <span className="whitespace-nowrap text-xs font-semibold text-white">
+          {label}
+        </span>
+      </div>
     </button>
   );
 };
@@ -85,6 +86,9 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [projectForNewTask, setProjectForNewTask] = useState<Project | null>(null);
+  const [taskToView, setTaskToView] = useState<Task | null>(null);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [isDeletingTask, setIsDeletingTask] = useState(false);
 
   const getClientId = (project: Project) => {
     return typeof project.clientId === 'object' ? project.clientId._id : project.clientId;
@@ -110,20 +114,13 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
     router.push(`/dashboard/clients/${clientId}/projects/${project._id}`);
   };
 
-  const handleViewTasks = async (e: React.MouseEvent, project: Project) => {
-    e.stopPropagation();
-    setTasksToShow(project);
-    setIsLoadingTasks(true);
-    setTasks([]);
-
-    if (!tenantId || !token) {
+  const fetchTasksForProject = useCallback(async (project: Project) => {
+     if (!tenantId || !token) {
         toast({ title: "Error", description: "Authentication details missing.", variant: "destructive" });
         setIsLoadingTasks(false);
         return;
     }
-
     const clientId = getClientId(project);
-
     try {
         const { tasks: fetchedTasks } = await getTasks(tenantId, token, clientId, project._id);
         setTasks(fetchedTasks);
@@ -132,8 +129,15 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
     } finally {
         setIsLoadingTasks(false);
     }
-  };
+  }, [tenantId, token, toast]);
 
+  const handleViewTasks = async (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation();
+    setTasksToShow(project);
+    setIsLoadingTasks(true);
+    setTasks([]);
+    fetchTasksForProject(project);
+  };
 
   const handleConfirmDelete = async () => {
     if (!projectToDelete || !tenantId || !token) return;
@@ -150,6 +154,22 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
       toast({ title: "Error", description: error.message || "Failed to delete project.", variant: "destructive" });
     } finally {
       setIsDeleting(false);
+    }
+  };
+
+  const handleConfirmDeleteTask = async () => {
+    if (!taskToDelete || !tasksToShow || !tenantId || !token) return;
+
+    setIsDeletingTask(true);
+    try {
+      await deleteTask(tenantId, token, tasksToShow._id, taskToDelete._id);
+      toast({ title: "Success", description: "Task deleted successfully." });
+      setTasks(tasks.filter(t => t._id !== taskToDelete._id));
+      setTaskToDelete(null);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to delete task.", variant: "destructive" });
+    } finally {
+      setIsDeletingTask(false);
     }
   };
 
@@ -196,24 +216,21 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <ActionButton 
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
                       label="View"
-                      className="text-blue-500 border-blue-200" 
-                      hoverClassName="hover:bg-blue-500 hover:border-blue-700"
+                      className="text-blue-500 border-blue-200 hover:bg-blue-500 hover:border-blue-700" 
                     >
                         <Eye className="h-4 w-4" />
                     </ActionButton>
                     <ActionButton 
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
                       label="Edit" 
-                      className="text-yellow-500 border-yellow-200"
-                      hoverClassName="hover:bg-yellow-500 hover:border-yellow-700"
+                      className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
                     >
                         <Edit className="h-4 w-4" />
                     </ActionButton>
                      <ActionButton 
                        onClick={(e) => handleDeleteClick(e, project)} 
                        label="Delete" 
-                       className="text-red-500 border-red-200"
-                       hoverClassName="hover:bg-red-500 hover:border-red-700"
+                       className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
                      >
                         <Trash2 className="h-4 w-4" />
                     </ActionButton>
@@ -223,16 +240,14 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <ActionButton 
                       onClick={(e) => handleViewTasks(e, project)} 
                       label="Tasks" 
-                      className="text-green-500 border-green-200"
-                      hoverClassName="hover:bg-green-500 hover:border-green-700"
+                      className="text-green-500 border-green-200 hover:bg-green-500 hover:border-green-700"
                     >
                        <ListChecks className="h-4 w-4" />
                     </ActionButton>
                     <ActionButton 
                       onClick={(e) => handleAddTaskClick(e, project)}
                       label="Add" 
-                      className="text-indigo-500 border-indigo-200"
-                      hoverClassName="hover:bg-indigo-500 hover:border-indigo-700"
+                      className="text-indigo-500 border-indigo-200 hover:bg-indigo-500 hover:border-indigo-700"
                     >
                         <PlusCircle className="h-4 w-4" />
                     </ActionButton>
@@ -263,6 +278,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <TableHead>Title</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Due Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -277,10 +293,18 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                         </Badge>
                         </TableCell>
                         <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="icon" onClick={() => setTaskToView(task)}>
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => setTaskToDelete(task)}>
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
                     </TableRow>
                     )) : (
                         <TableRow>
-                            <TableCell colSpan={3} className="text-center">No tasks found for this project.</TableCell>
+                            <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>
@@ -301,7 +325,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                 projectId={projectForNewTask._id}
                 onTaskAdded={() => {
                   if (tasksToShow && tasksToShow._id === projectForNewTask._id) {
-                    handleViewTasks(new MouseEvent('click'), projectForNewTask);
+                    fetchTasksForProject(projectForNewTask);
                   }
                   setProjectForNewTask(null);
                 }}
@@ -323,6 +347,32 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={handleConfirmDelete} disabled={isDeleting}>
               {isDeleting ? 'Deleting...' : 'Delete'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <Dialog open={!!taskToView} onOpenChange={(isOpen) => !isOpen && setTaskToView(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Task Details</DialogTitle>
+          </DialogHeader>
+          {taskToView && <ViewTaskDetails task={taskToView} />}
+        </DialogContent>
+      </Dialog>
+      
+      <AlertDialog open={!!taskToDelete} onOpenChange={(isOpen) => !isOpen && setTaskToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the task.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmDeleteTask} disabled={isDeletingTask}>
+              {isDeletingTask ? 'Deleting...' : 'Delete'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

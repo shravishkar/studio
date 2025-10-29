@@ -477,3 +477,37 @@ export async function deleteProject(tenantId: string, token: string, clientId: s
         throw error instanceof Error ? error : new Error("An unknown error occurred.");
     }
 }
+
+// Function to delete a task from a project
+export async function deleteTask(tenantId: string, token: string, projectId: string, taskId: string): Promise<ApiAddResponse> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+
+    const url = `${baseUrl}/tasks/${projectId}/${taskId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Failed to delete task. Status: ${response.status}`);
+        }
+
+        const responseData: ApiAddResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response for deleting a task.");
+        }
+
+        return responseData;
+    } catch (error) {
+        console.error("Error deleting task:", error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred while deleting the task.");
+    }
+}
