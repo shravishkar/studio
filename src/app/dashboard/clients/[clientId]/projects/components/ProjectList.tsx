@@ -43,6 +43,36 @@ interface ProjectListProps {
   onProjectDeleted: (projectId: string) => void;
 }
 
+interface ActionButtonProps {
+  onClick: (e: React.MouseEvent) => void;
+  tooltip: string;
+  children: React.ReactNode;
+  label: string;
+  className?: string;
+}
+
+const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className }) => (
+  <Tooltip>
+    <TooltipTrigger asChild>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="h-8 w-8 shrink-0 rounded-full data-[hover]:w-auto data-[hover]:px-2"
+        onClick={onClick}
+      >
+        <div className="flex items-center gap-2">
+          {children}
+          <span className="hidden text-xs group-hover/actions:inline-block group-hover/actions:animate-in group-hover/actions:fade-in group-hover/actions:duration-300">
+            {label}
+          </span>
+        </div>
+      </Button>
+    </TooltipTrigger>
+    <TooltipContent side="top" className="group-hover/actions:hidden">{tooltip}</TooltipContent>
+  </Tooltip>
+);
+
+
 const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const { tenantId, token } = useAuth();
   const { toast } = useToast();
@@ -126,7 +156,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
             <TableHead>Client Name</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Last Updated</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
+            <TableHead className="text-right w-[300px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -154,53 +184,30 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    <div className="flex items-center gap-1 bg-muted p-1 rounded-full">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))}>
-                                    <Eye className="h-4 w-4 text-blue-500" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>View Project</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))}>
-                                    <Edit className="h-4 w-4 text-yellow-500" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Edit Project</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={(e) => handleDeleteClick(e, project)}>
-                                    <Trash2 className="h-4 w-4 text-red-500" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Delete Project</TooltipContent>
-                        </Tooltip>
+                    
+                    <div className="group/actions flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out hover:w-auto">
+                        <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View">
+                            <Eye className="h-4 w-4 text-blue-500" />
+                        </ActionButton>
+                        <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit">
+                            <Edit className="h-4 w-4 text-yellow-500" />
+                        </ActionButton>
+                         <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete">
+                            <Trash2 className="h-4 w-4 text-red-500" />
+                        </ActionButton>
                     </div>
 
                     <Separator orientation="vertical" className="h-6" />
 
-                    <div className="flex items-center gap-1 bg-muted p-1 rounded-full">
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={(e) => handleViewTasks(e, project)}>
-                                    <ListChecks className="h-4 w-4 text-green-500" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>View Tasks</TooltipContent>
-                        </Tooltip>
-                        <Tooltip>
-                            <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" className="h-7 w-7 rounded-full" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })}>
-                                    <PlusCircle className="h-4 w-4 text-indigo-500" />
-                                </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Add Task</TooltipContent>
-                        </Tooltip>
+                    <div className="group/actions flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out hover:w-auto">
+                        <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks">
+                           <ListChecks className="h-4 w-4 text-green-500" />
+                        </ActionButton>
+                        <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add">
+                            <PlusCircle className="h-4 w-4 text-indigo-500" />
+                        </ActionButton>
                     </div>
+
                 </div>
               </TableCell>
             </TableRow>
