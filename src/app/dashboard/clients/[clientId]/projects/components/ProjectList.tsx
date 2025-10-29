@@ -3,7 +3,7 @@
 
 import { FC, useState } from 'react';
 import { Project, Task } from '@/lib/types';
-import { deleteProject, getTask, getTasks } from '@/lib/api';
+import { deleteProject, getTasks } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -38,7 +38,6 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import AddTaskForm from '../../projects/[projectId]/components/AddTaskForm';
-import ViewTaskDetails from '../../projects/[projectId]/components/ViewTaskDetails';
 
 interface ProjectListProps {
   projects: Project[];
@@ -66,7 +65,12 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, classNa
       )}
     >
       <div className={cn("absolute flex items-center justify-center opacity-0 transition-all duration-300 group-hover/action:opacity-100", iconClassName)}>
-          {children}
+          <div className="opacity-0 group-hover/action:opacity-100 transition-opacity duration-300">
+            {children}
+          </div>
+      </div>
+      <div className="absolute flex items-center justify-center group-hover/action:opacity-0 transition-opacity duration-300">
+        {children}
       </div>
       <span className="pointer-events-none absolute inset-0 flex items-center justify-center whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover/action:pointer-events-auto group-hover/action:opacity-100">
         {label}
@@ -86,10 +90,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [projectForNewTask, setProjectForNewTask] = useState<Project | null>(null);
-
-  const [taskToView, setTaskToView] = useState<Task | null>(null);
-  const [isLoadingTask, setIsLoadingTask] = useState(false);
-
 
   const getClientId = (project: Project) => {
     return typeof project.clientId === 'object' ? project.clientId._id : project.clientId;
@@ -138,27 +138,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
         setIsLoadingTasks(false);
     }
   };
-
-  const handleViewTaskClick = async (e: React.MouseEvent, taskId: string) => {
-    e.stopPropagation();
-    setIsLoadingTask(true);
-    setTaskToView(null);
-
-    if (!tenantId || !token) {
-      toast({ title: "Error", description: "Authentication details missing.", variant: "destructive" });
-      setIsLoadingTask(false);
-      return;
-    }
-
-    try {
-      const fetchedTask = await getTask(tenantId, token, taskId);
-      setTaskToView(fetchedTask);
-    } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to fetch task details.", variant: "destructive" });
-    } finally {
-      setIsLoadingTask(false);
-    }
-  }
 
 
   const handleConfirmDelete = async () => {
@@ -289,7 +268,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <TableHead>Title</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Due Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -304,20 +282,10 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                         </Badge>
                         </TableCell>
                         <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
-                        <TableCell className="text-right">
-                          <ActionButton 
-                            onClick={(e) => handleViewTaskClick(e, task._id)} 
-                            label="View"
-                            iconClassName="group-hover/action:text-white text-blue-500" 
-                            hoverClassName="hover:bg-blue-500 hover:border-blue-700"
-                          >
-                            <Eye className="h-4 w-4" />
-                          </ActionButton>
-                        </TableCell>
                     </TableRow>
                     )) : (
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                            <TableCell colSpan={3} className="text-center">No tasks found for this project.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>
@@ -346,22 +314,6 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
             </DialogContent>
         </Dialog>
       )}
-
-      <Dialog open={!!taskToView || isLoadingTask} onOpenChange={(isOpen) => !isOpen && setTaskToView(null)}>
-        <DialogContent className="sm:max-w-2xl">
-           <DialogHeader>
-                <DialogTitle>Task Details</DialogTitle>
-            </DialogHeader>
-            {isLoadingTask ? (
-              <div className="flex justify-center items-center h-40">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-              </div>
-            ) : taskToView ? (
-              <ViewTaskDetails task={taskToView} />
-            ) : null}
-        </DialogContent>
-      </Dialog>
-
 
       <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
         <AlertDialogContent>
