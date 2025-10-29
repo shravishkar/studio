@@ -49,13 +49,11 @@ interface ActionButtonProps {
   tooltip: string;
   children: React.ReactNode;
   label: string;
-  variant?: 'default' | 'destructive';
   className?: string;
   iconClassName?: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, variant, className, iconClassName }) => {
-  const isDestructive = variant === 'destructive';
+const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className, iconClassName }) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -63,15 +61,14 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label
           variant="ghost"
           size="icon"
           className={cn(
-            "h-8 w-8 shrink-0 rounded-full",
-            isDestructive ? 'bg-green-500 hover:bg-green-600 text-white group-hover:w-20' : 'group-hover:w-20',
+            "h-8 w-8 shrink-0 rounded-full group hover:w-24 transition-all duration-300 ease-in-out",
             className
           )}
           onClick={onClick}
         >
           <div className="flex items-center gap-2">
-            <div className={cn('h-4 w-4', iconClassName)}>{children}</div>
-            <span className="hidden text-xs font-semibold group-hover:inline-block">
+            <div className={cn('h-4 w-4 transition-all', iconClassName)}>{children}</div>
+            <span className="hidden text-xs font-semibold opacity-0 transition-opacity duration-200 group-hover:inline-block group-hover:opacity-100">
               {label}
             </span>
           </div>
@@ -193,30 +190,24 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                    
-                    <div className="group flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out">
-                        <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" iconClassName="text-blue-500" >
-                            <Eye />
-                        </ActionButton>
-                        <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" iconClassName="text-yellow-500">
-                            <Edit />
-                        </ActionButton>
-                         <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" variant="destructive">
-                            <Trash2 />
-                        </ActionButton>
-                    </div>
+                    <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" className="hover:bg-blue-500 hover:text-white" iconClassName="text-blue-500 group-hover:text-white" >
+                        <Eye />
+                    </ActionButton>
+                    <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" className="hover:bg-yellow-500 hover:text-white" iconClassName="text-yellow-500 group-hover:text-white">
+                        <Edit />
+                    </ActionButton>
+                     <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" className="hover:bg-red-500 hover:text-white" iconClassName="text-red-500 group-hover:text-white">
+                        <Trash2 />
+                    </ActionButton>
 
-                    <Separator orientation="vertical" className="h-6" />
+                    <Separator orientation="vertical" className="h-6 mx-2" />
 
-                    <div className="group flex items-center gap-1 bg-muted p-1 rounded-full transition-all duration-300 ease-in-out">
-                        <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" iconClassName="text-green-500">
-                           <ListChecks />
-                        </ActionButton>
-                        <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" iconClassName="text-indigo-500">
-                            <PlusCircle />
-                        </ActionButton>
-                    </div>
-
+                    <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" className="hover:bg-green-500 hover:text-white" iconClassName="text-green-500 group-hover:text-white">
+                       <ListChecks />
+                    </ActionButton>
+                    <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" className="hover:bg-indigo-500 hover:text-white" iconClassName="text-indigo-500 group-hover:text-white">
+                        <PlusCircle />
+                    </ActionButton>
                 </div>
               </TableCell>
             </TableRow>
