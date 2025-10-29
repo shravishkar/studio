@@ -3,7 +3,7 @@
 
 import { FC, useState, MouseEvent, useCallback } from 'react';
 import { Project, Task } from '@/lib/types';
-import { deleteProject, getTasks } from '@/lib/api';
+import { deleteProject, getTasks, deleteTask, updateTask } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -38,6 +38,7 @@ import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import AddTaskForm from '../../projects/[projectId]/components/AddTaskForm';
+import EditTaskForm from '../../projects/components/EditTaskForm';
 
 interface ActionButtonProps {
   onClick: (e: React.MouseEvent) => void;
@@ -68,6 +69,10 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, classNa
   );
 };
 
+interface ProjectListProps {
+    projects: Project[];
+    onProjectDeleted: (projectId: string) => void;
+}
 
 const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const { tenantId, token } = useAuth();
@@ -75,7 +80,10 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const router = useRouter();
   const [isDeleting, setIsDeleting] = useState(false);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
-  
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [isDeletingTask, setIsDeletingTask] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
+
   const [tasksToShow, setTasksToShow] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
@@ -148,6 +156,46 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
     }
   };
 
+  const handleDeleteTaskClick = (e: React.MouseEvent, task: Task) => {
+    e.stopPropagation();
+    setTaskToDelete(task);
+  };
+  
+  const handleEditTaskClick = (e: React.MouseEvent, task: Task) => {
+    e.stopPropagation();
+    setTaskToEdit(task);
+  };
+
+  const handleConfirmDeleteTask = async () => {
+    if (!taskToDelete || !tasksToShow || !token) return;
+
+    setIsDeletingTask(true);
+    try {
+        await deleteTask(token, tasksToShow._id, taskToDelete._id);
+        toast({ title: "Success", description: "Task deleted successfully." });
+        fetchTasksForProject(tasksToShow);
+        setTaskToDelete(null);
+    } catch (error: any) {
+        toast({ title: "Error", description: error.message || "Failed to delete task.", variant: "destructive" });
+    } finally {
+        setIsDeletingTask(false);
+    }
+  };
+
+  const getTaskStatusClasses = (status: Task['status']) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'in-progress':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'in-review':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'todo':
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
+  };
+
   return (
     <>
       <Table>
@@ -162,7 +210,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
         </TableHeader>
         <TableBody>
           {projects.map((project) => (
-            <TableRow 
+            <TableRow
               key={project._id}
               onClick={() => handleRowClick(project)}
               className="cursor-pointer transition-colors hover:bg-muted/50"
@@ -184,44 +232,44 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                 {new Date(project.updatedAt).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
-                <div 
+                <div
                   className="inline-flex justify-end items-center gap-1 rounded-full bg-muted p-1 border"
                   onClick={(e) => e.stopPropagation()}
                 >
-                    <ActionButton 
-                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
+                    <ActionButton
+                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))}
                       label="View"
-                      className="text-blue-500 border-blue-200 hover:bg-blue-500 hover:border-blue-700" 
+                      className="text-blue-500 border-blue-200 hover:bg-blue-500 hover:border-blue-700"
                     >
                         <Eye className="h-4 w-4" />
                     </ActionButton>
-                    <ActionButton 
-                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
-                      label="Edit" 
+                    <ActionButton
+                      onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))}
+                      label="Edit"
                       className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
                     >
                         <Edit className="h-4 w-4" />
                     </ActionButton>
-                     <ActionButton 
-                       onClick={(e) => handleDeleteClick(e, project)} 
-                       label="Delete" 
+                     <ActionButton
+                       onClick={(e) => handleDeleteClick(e, project)}
+                       label="Delete"
                        className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
                      >
                         <Trash2 className="h-4 w-4" />
                     </ActionButton>
 
                     <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
-                    
-                    <ActionButton 
-                      onClick={(e) => handleViewTasks(e, project)} 
-                      label="Tasks" 
+
+                    <ActionButton
+                      onClick={(e) => handleViewTasks(e, project)}
+                      label="Tasks"
                       className="text-green-500 border-green-200 hover:bg-green-500 hover:border-green-700"
                     >
                        <ListChecks className="h-4 w-4" />
                     </ActionButton>
-                    <ActionButton 
+                    <ActionButton
                       onClick={(e) => handleAddTaskClick(e, project)}
-                      label="Add" 
+                      label="Add"
                       className="text-indigo-500 border-indigo-200 hover:bg-indigo-500 hover:border-indigo-700"
                     >
                         <PlusCircle className="h-4 w-4" />
@@ -253,6 +301,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <TableHead>Title</TableHead>
                     <TableHead>Status</TableHead>
                     <TableHead>Due Date</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -260,17 +309,33 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <TableRow key={task._id}>
                         <TableCell>{task.title}</TableCell>
                         <TableCell>
-                        <Badge 
-                            variant={task.status === 'done' ? 'default' : task.status === 'in-progress' ? 'secondary' : 'outline'}
-                        >
-                            {task.status}
-                        </Badge>
+                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTaskStatusClasses(task.status)}`}>
+                                {task.status}
+                            </span>
                         </TableCell>
                         <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                        <TableCell className="text-right">
+                            <div className="inline-flex gap-1">
+                                <ActionButton
+                                    onClick={(e) => handleEditTaskClick(e, task)}
+                                    label="Edit"
+                                    className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
+                                >
+                                    <Edit className="h-4 w-4" />
+                                </ActionButton>
+                                <ActionButton
+                                    onClick={(e) => handleDeleteTaskClick(e, task)}
+                                    label="Delete"
+                                    className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                                >
+                                    <Trash2 className="h-4 w-4" />
+                                </ActionButton>
+                            </div>
+                        </TableCell>
                     </TableRow>
                     )) : (
                         <TableRow>
-                            <TableCell colSpan={3} className="text-center">No tasks found for this project.</TableCell>
+                            <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
                         </TableRow>
                     )}
                 </TableBody>
@@ -279,7 +344,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
           </div>
         </DialogContent>
       </Dialog>
-      
+
       {projectForNewTask && (
         <Dialog open={!!projectForNewTask} onOpenChange={(isOpen) => !isOpen && setProjectForNewTask(null)}>
             <DialogContent className="sm:max-w-[425px]">
@@ -296,6 +361,27 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                   setProjectForNewTask(null);
                 }}
                 setOpen={(isOpen) => !isOpen && setProjectForNewTask(null)}
+            />
+            </DialogContent>
+        </Dialog>
+      )}
+      
+      {taskToEdit && (
+        <Dialog open={!!taskToEdit} onOpenChange={(isOpen) => !isOpen && setTaskToEdit(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Edit Task</DialogTitle>
+            </DialogHeader>
+            <EditTaskForm
+                projectId={tasksToShow!._id}
+                task={taskToEdit}
+                onTaskUpdated={() => {
+                  if (tasksToShow) {
+                    fetchTasksForProject(tasksToShow);
+                  }
+                  setTaskToEdit(null);
+                }}
+                setOpen={(isOpen) => !isOpen && setTaskToEdit(null)}
             />
             </DialogContent>
         </Dialog>
@@ -317,6 +403,23 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <AlertDialog open={!!taskToDelete} onOpenChange={(isOpen) => !isOpen && setTaskToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to delete this task?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the task.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDeleteTask} disabled={isDeletingTask}>
+                    {isDeletingTask ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+    </AlertDialog>
     </>
   );
 };

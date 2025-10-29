@@ -1,5 +1,4 @@
 
-
 export interface Client {
   _id: string;
   tenantId: string;
@@ -36,7 +35,7 @@ export interface Task {
   };
   title: string;
   description: string;
-  status: 'todo' | 'in-progress' | 'done';
+  status: 'todo' | 'in-progress' | 'completed' | 'in-review';
   createdDate: string;
   dueDate: string;
   visibleToClient: boolean;

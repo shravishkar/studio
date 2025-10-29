@@ -1,25 +1,72 @@
 
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { FC, useEffect, useState, useCallback, MouseEvent } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/hooks/use-auth';
-import { getProject, getTasks } from '@/lib/api';
+import { getProject, getTasks, deleteTask } from '@/lib/api';
 import type { Project, Task } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Loader2 } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { PlusCircle, Loader2, Edit, Trash2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import AddTaskForm from './AddTaskForm';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import EditTaskForm from '../../components/EditTaskForm';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { cn } from '@/lib/utils';
 
 interface ViewProjectDetailsProps {
   clientId: string;
   projectId: string;
 }
+
+const ActionButton: FC<{ onClick: (e: MouseEvent) => void; children: React.ReactNode; label: string; className?: string; }> = ({ onClick, children, label, className }) => {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        "group/action relative flex h-9 w-9 items-center justify-center rounded-full border bg-background transition-all duration-300 ease-in-out",
+        "hover:w-24",
+        className
+      )}
+    >
+      <div className="absolute flex h-full w-full items-center justify-center opacity-100 transition-opacity duration-300 group-hover/action:opacity-0">
+        {children}
+      </div>
+      <div className="absolute flex h-full w-full items-center justify-center opacity-0 transition-opacity duration-300 group-hover/action:opacity-100">
+        <span className="whitespace-nowrap text-xs font-semibold text-white">
+          {label}
+        </span>
+      </div>
+    </button>
+  );
+};
 
 export default function ViewProjectDetails({ clientId, projectId }: ViewProjectDetailsProps) {
   const router = useRouter();
@@ -30,36 +77,86 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [isDeletingTask, setIsDeletingTask] = useState(false);
+  const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
-  const fetchProjectAndTasks = useCallback(async () => {
+  const fetchProject = useCallback(async () => {
     if (!tenantId || !token || !clientId || !projectId) {
       setIsLoading(false);
-      setIsLoadingTasks(false);
       return;
     }
-    
     setIsLoading(true);
-    setIsLoadingTasks(true);
-    
     try {
       const projectData = await getProject(tenantId, token, clientId, projectId);
       setProject(projectData);
-      
-      const tasksData = await getTasks(tenantId, token, clientId, projectId);
-      setTasks(tasksData.tasks);
-
     } catch (error: any) {
       toast({ title: "Error", description: "Failed to fetch project details.", variant: "destructive" });
     } finally {
       setIsLoading(false);
+    }
+  }, [tenantId, token, clientId, projectId, toast]);
+
+  const fetchTasks = useCallback(async () => {
+    if (!tenantId || !token || !clientId || !projectId) {
+      setIsLoadingTasks(false);
+      return;
+    }
+    setIsLoadingTasks(true);
+    try {
+      const tasksData = await getTasks(tenantId, token, clientId, projectId);
+      setTasks(tasksData.tasks);
+    } catch (error: any) {
+      toast({ title: "Error", description: "Failed to fetch tasks.", variant: "destructive" });
+    } finally {
       setIsLoadingTasks(false);
     }
   }, [tenantId, token, clientId, projectId, toast]);
 
-
   useEffect(() => {
-    fetchProjectAndTasks();
-  }, [fetchProjectAndTasks]);
+    fetchProject();
+    fetchTasks();
+  }, [fetchProject, fetchTasks]);
+
+  const handleDeleteTaskClick = (e: MouseEvent, task: Task) => {
+    e.stopPropagation();
+    setTaskToDelete(task);
+  };
+
+  const handleEditTaskClick = (e: MouseEvent, task: Task) => {
+    e.stopPropagation();
+    setTaskToEdit(task);
+  };
+
+  const handleConfirmDeleteTask = async () => {
+    if (!taskToDelete || !token) return;
+
+    setIsDeletingTask(true);
+    try {
+      await deleteTask(token, projectId, taskToDelete._id);
+      toast({ title: "Success", description: "Task deleted successfully." });
+      fetchTasks();
+      setTaskToDelete(null);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to delete task.", variant: "destructive" });
+    } finally {
+      setIsDeletingTask(false);
+    }
+  };
+
+  const getTaskStatusClasses = (status: Task['status']) => {
+    switch (status) {
+      case 'completed':
+        return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300';
+      case 'in-progress':
+        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300';
+      case 'in-review':
+        return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300';
+      case 'todo':
+      default:
+        return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    }
+  };
 
   if (isLoading) {
     return (
@@ -168,7 +265,8 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                   clientId={clientId}
                   projectId={projectId}
                   onTaskAdded={() => {
-                    fetchProjectAndTasks();
+                    fetchTasks();
+                    setAddTaskOpen(false);
                   }}
                   setOpen={setAddTaskOpen}
                 />
@@ -188,6 +286,7 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                   <TableHead>Title</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Due Date</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -195,13 +294,33 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                   <TableRow key={task._id}>
                     <TableCell>{task.title}</TableCell>
                     <TableCell>
-                      <Badge>{task.status}</Badge>
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTaskStatusClasses(task.status)}`}>
+                            {task.status}
+                        </span>
                     </TableCell>
                     <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                    <TableCell className="text-right">
+                        <div className="inline-flex gap-1">
+                            <ActionButton
+                                onClick={(e) => handleEditTaskClick(e, task)}
+                                label="Edit"
+                                className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
+                            >
+                                <Edit className="h-4 w-4" />
+                            </ActionButton>
+                            <ActionButton
+                                onClick={(e) => handleDeleteTaskClick(e, task)}
+                                label="Delete"
+                                className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                            >
+                                <Trash2 className="h-4 w-4" />
+                            </ActionButton>
+                        </div>
+                    </TableCell>
                   </TableRow>
                 )) : (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center">No tasks found for this project.</TableCell>
+                    <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
                   </TableRow>
                 )}
               </TableBody>
@@ -209,6 +328,42 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
           )}
         </CardContent>
       </Card>
+
+      {taskToEdit && (
+        <Dialog open={!!taskToEdit} onOpenChange={(isOpen) => !isOpen && setTaskToEdit(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Edit Task</DialogTitle>
+                </DialogHeader>
+                <EditTaskForm
+                    projectId={projectId}
+                    task={taskToEdit}
+                    onTaskUpdated={() => {
+                        fetchTasks();
+                        setTaskToEdit(null);
+                    }}
+                    setOpen={(isOpen) => !isOpen && setTaskToEdit(null)}
+                />
+            </DialogContent>
+        </Dialog>
+      )}
+
+      <AlertDialog open={!!taskToDelete} onOpenChange={(isOpen) => !isOpen && setTaskToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to delete this task?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the task.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDeleteTask} disabled={isDeletingTask}>
+                    {isDeletingTask ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

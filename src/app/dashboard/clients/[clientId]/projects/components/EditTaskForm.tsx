@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, SubmitHandler, FormProvider, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -12,8 +12,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useAuth } from '@/hooks/use-auth';
-import { addTask } from '@/lib/api';
-import type { NewTask } from '@/lib/types';
+import { updateTask } from '@/lib/api';
+import type { NewTask, Task } from '@/lib/types';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { CalendarIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -31,49 +31,50 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-interface AddTaskFormProps {
-  clientId: string;
+interface EditTaskFormProps {
   projectId: string;
-  onTaskAdded: () => void;
+  task: Task;
+  onTaskUpdated: () => void;
   setOpen: (open: boolean) => void;
 }
 
-export default function AddTaskForm({ clientId, projectId, onTaskAdded, setOpen }: AddTaskFormProps) {
+export default function EditTaskForm({ projectId, task, onTaskUpdated, setOpen }: EditTaskFormProps) {
   const { toast } = useToast();
-  const { tenantId, token } = useAuth();
+  const { token } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: '',
-      description: '',
-      status: 'todo',
-      visibleToClient: false,
+      title: task.title,
+      description: task.description,
+      dueDate: new Date(task.dueDate),
+      status: task.status,
+      visibleToClient: task.visibleToClient,
     },
   });
 
   const onSubmit: SubmitHandler<FormValues> = async (data) => {
-    if (!tenantId || !token) {
+    if (!token) {
       toast({ title: "Authentication Error", description: "Authentication details are missing.", variant: "destructive" });
       return;
     }
     
     setIsLoading(true);
 
-    const taskData: NewTask = {
+    const taskData: Partial<NewTask> = {
       ...data,
       description: data.description || '',
       dueDate: data.dueDate.toISOString(),
     };
 
     try {
-      await addTask(tenantId, token, clientId, projectId, taskData);
-      toast({ title: "Success", description: "Task added successfully." });
-      onTaskAdded();
+      await updateTask(token, projectId, task._id, taskData);
+      toast({ title: "Success", description: "Task updated successfully." });
+      onTaskUpdated();
       setOpen(false);
     } catch (error: any) {
-      toast({ title: "Error", description: error.message || "Failed to add task.", variant: "destructive" });
+      toast({ title: "Error", description: error.message || "Failed to update task.", variant: "destructive" });
     } finally {
       setIsLoading(false);
     }
@@ -168,7 +169,7 @@ export default function AddTaskForm({ clientId, projectId, onTaskAdded, setOpen 
         <div className="flex gap-2 justify-end">
           <Button type="button" variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
           <Button type="submit" disabled={isLoading}>
-            {isLoading ? 'Adding Task...' : 'Add Task'}
+            {isLoading ? 'Updating Task...' : 'Update Task'}
           </Button>
         </div>
       </form>
