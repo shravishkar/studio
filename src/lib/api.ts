@@ -1,4 +1,5 @@
 
+
 import type { Client, GetClientsResponse, GetProjectsResponse, GetTasksResponse, NewClient, NewProject, NewTask, Project, Task } from "./types";
 
 interface ApiListResponse {
@@ -30,6 +31,12 @@ interface ApiSingleProjectResponse {
     success: boolean;
     message: string;
     data: Project;
+}
+
+interface ApiSingleTaskResponse {
+    success: boolean;
+    message: string;
+    data: Task;
 }
 
 interface ApiAddResponse {
@@ -325,6 +332,42 @@ export async function getProject(tenantId: string, token: string, clientId: stri
         return responseData.data;
     } catch (error) {
         console.error("Error getting project:", error);
+        throw error instanceof Error ? error : new Error("An unknown error occurred.");
+    }
+}
+
+// Function to retrieve a single task by ID
+export async function getTask(tenantId: string, token: string, taskId: string): Promise<Task> {
+    const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
+    if (!baseUrl) {
+        throw new Error("API base URL is not configured.");
+    }
+
+    // Assuming a /tasks/single/:taskId endpoint or similar
+    const url = `${baseUrl}/tasks/single/${taskId}`;
+
+    try {
+        const response = await fetch(url, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => null);
+            throw new Error(errorData?.message || `Failed to fetch task. Status: ${response.status}`);
+        }
+
+        const responseData: ApiSingleTaskResponse = await response.json();
+        if (!responseData.success) {
+            throw new Error(responseData.message || "API returned a non-successful response.");
+        }
+
+        return responseData.data;
+    } catch (error) {
+        console.error("Error getting task:", error);
         throw error instanceof Error ? error : new Error("An unknown error occurred.");
     }
 }
