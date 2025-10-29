@@ -1,7 +1,7 @@
 
 'use client';
 
-import { FC, useEffect, useState, useCallback, MouseEvent } from 'react';
+import { FC, useEffect, useState, useCallback, MouseEvent, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -117,6 +117,13 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
     fetchProject();
     fetchTasks();
   }, [fetchProject, fetchTasks]);
+  
+  const taskStatusCounts = useMemo(() => {
+    return tasks.reduce((acc, task) => {
+        acc[task.status] = (acc[task.status] || 0) + 1;
+        return acc;
+    }, {} as Record<Task['status'], number>);
+  }, [tasks]);
 
   const handleDeleteTaskClick = (e: MouseEvent, task: Task) => {
     e.stopPropagation();
@@ -275,11 +282,21 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
           </div>
         </CardHeader>
         <CardContent>
-          {isLoadingTasks ? (
-            <div className="flex justify-center items-center h-40">
-                <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            {isLoadingTasks ? (
+                <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                </div>
+            ) : (
+            <>
+            <div className="flex items-center space-x-4 pb-4">
+                {Object.entries(taskStatusCounts).map(([status, count]) => (
+                    <div key={status} className="flex items-center">
+                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTaskStatusClasses(status as Task['status'])}`}>
+                            {status}: {count}
+                        </span>
+                    </div>
+                ))}
             </div>
-          ) : (
             <Table>
               <TableHeader>
                 <TableRow>
@@ -325,6 +342,7 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                 )}
               </TableBody>
             </Table>
+            </>
           )}
         </CardContent>
       </Card>

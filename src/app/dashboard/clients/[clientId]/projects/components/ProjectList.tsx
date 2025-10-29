@@ -1,9 +1,9 @@
 
 'use client';
 
-import { FC, useState, MouseEvent, useCallback } from 'react';
+import { FC, useState, MouseEvent, useCallback, useMemo } from 'react';
 import { Project, Task } from '@/lib/types';
-import { deleteProject, getTasks, deleteTask, updateTask } from '@/lib/api';
+import { deleteProject, getTasks, deleteTask } from '@/lib/api';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -88,6 +88,13 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [projectForNewTask, setProjectForNewTask] = useState<Project | null>(null);
+
+  const taskStatusCounts = useMemo(() => {
+    return tasks.reduce((acc, task) => {
+        acc[task.status] = (acc[task.status] || 0) + 1;
+        return acc;
+    }, {} as Record<Task['status'], number>);
+  }, [tasks]);
 
   const getClientId = (project: Project) => {
     return typeof project.clientId === 'object' ? project.clientId._id : project.clientId;
@@ -295,51 +302,62 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
                 </div>
              ) : (
-                <Table>
-                <TableHeader>
-                    <TableRow>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {tasks.length > 0 ? tasks.map((task) => (
-                    <TableRow key={task._id}>
-                        <TableCell>{task.title}</TableCell>
-                        <TableCell>
-                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTaskStatusClasses(task.status)}`}>
-                                {task.status}
-                            </span>
-                        </TableCell>
-                        <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
-                        <TableCell className="text-right">
-                            <div className="inline-flex gap-1">
-                                <ActionButton
-                                    onClick={(e) => handleEditTaskClick(e, task)}
-                                    label="Edit"
-                                    className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
-                                >
-                                    <Edit className="h-4 w-4" />
-                                </ActionButton>
-                                <ActionButton
-                                    onClick={(e) => handleDeleteTaskClick(e, task)}
-                                    label="Delete"
-                                    className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
-                                >
-                                    <Trash2 className="h-4 w-4" />
-                                </ActionButton>
+                <>
+                    <div className="flex items-center space-x-4 pb-4">
+                        {Object.entries(taskStatusCounts).map(([status, count]) => (
+                            <div key={status} className="flex items-center">
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTaskStatusClasses(status as Task['status'])}`}>
+                                    {status}: {count}
+                                </span>
                             </div>
-                        </TableCell>
-                    </TableRow>
-                    )) : (
+                        ))}
+                    </div>
+                    <Table>
+                    <TableHeader>
                         <TableRow>
-                            <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Due Date</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
-                    )}
-                </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                        {tasks.length > 0 ? tasks.map((task) => (
+                        <TableRow key={task._id}>
+                            <TableCell>{task.title}</TableCell>
+                            <TableCell>
+                                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getTaskStatusClasses(task.status)}`}>
+                                    {task.status}
+                                </span>
+                            </TableCell>
+                            <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
+                            <TableCell className="text-right">
+                                <div className="inline-flex gap-1">
+                                    <ActionButton
+                                        onClick={(e) => handleEditTaskClick(e, task)}
+                                        label="Edit"
+                                        className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
+                                    >
+                                        <Edit className="h-4 w-4" />
+                                    </ActionButton>
+                                    <ActionButton
+                                        onClick={(e) => handleDeleteTaskClick(e, task)}
+                                        label="Delete"
+                                        className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </ActionButton>
+                                </div>
+                            </TableCell>
+                        </TableRow>
+                        )) : (
+                            <TableRow>
+                                <TableCell colSpan={4} className="text-center">No tasks found for this project.</TableCell>
+                            </TableRow>
+                        )}
+                    </TableBody>
+                    </Table>
+                </>
              )}
           </div>
         </DialogContent>
