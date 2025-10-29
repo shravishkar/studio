@@ -50,21 +50,23 @@ interface ActionButtonProps {
   children: React.ReactNode;
   label: string;
   className?: string;
+  hoverColorClass: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className }) => {
+const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className, hoverColorClass }) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
           className={cn(
-            "group/action relative flex h-8 w-8 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out hover:w-24",
+            "group/action relative flex h-9 w-9 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out hover:w-24",
+            hoverColorClass,
             className
           )}
         >
-          <div className="h-4 w-4 transition-colors">{children}</div>
-          <span className="absolute left-10 text-xs font-semibold opacity-0 transition-opacity duration-200 group-hover/action:opacity-100">
+          <div className="h-4 w-4 transition-colors group-hover/action:text-white">{children}</div>
+          <span className="absolute left-10 whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-opacity duration-200 group-hover/action:opacity-100">
             {label}
           </span>
         </button>
@@ -157,7 +159,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
             <TableHead>Client Name</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Last Updated</TableHead>
-            <TableHead className="text-right w-[280px]">Actions</TableHead>
+            <TableHead className="text-right w-[320px]">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -185,26 +187,26 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div 
-                  className="inline-flex justify-end items-center gap-1"
+                  className="inline-flex justify-end items-center gap-2 rounded-full p-1 bg-muted/70 border"
                   onClick={(e) => e.stopPropagation()}
                 >
-                    <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" className="hover:bg-blue-100 text-blue-500" >
-                        <Eye />
+                    <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" hoverColorClass="hover:bg-blue-500" >
+                        <Eye className="text-blue-500" />
                     </ActionButton>
-                    <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" className="hover:bg-yellow-100 text-yellow-500">
-                        <Edit />
+                    <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" hoverColorClass="hover:bg-yellow-500">
+                        <Edit className="text-yellow-500"/>
                     </ActionButton>
-                     <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" className="hover:bg-red-100 text-red-500">
-                        <Trash2 />
+                     <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" hoverColorClass="hover:bg-red-500">
+                        <Trash2 className="text-red-500"/>
                     </ActionButton>
 
                     <Separator orientation="vertical" className="h-6 mx-1" />
 
-                    <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" className="hover:bg-green-100 text-green-500">
-                       <ListChecks />
+                    <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" hoverColorClass="hover:bg-green-500">
+                       <ListChecks className="text-green-500"/>
                     </ActionButton>
-                    <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" className="hover:bg-indigo-100 text-indigo-500">
-                        <PlusCircle />
+                    <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" hoverColorClass="hover:bg-indigo-500">
+                        <PlusCircle className="text-indigo-500"/>
                     </ActionButton>
                 </div>
               </TableCell>
