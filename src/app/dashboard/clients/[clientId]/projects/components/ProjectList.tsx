@@ -286,5 +286,3 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
 };
 
 export default ProjectList;
-
-    
