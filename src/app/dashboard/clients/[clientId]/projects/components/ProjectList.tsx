@@ -51,21 +51,23 @@ interface ActionButtonProps {
   label: string;
   className?: string;
   hoverColorClass: string;
+  iconColorClass: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className, hoverColorClass }) => {
+const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className, hoverColorClass, iconColorClass }) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
           className={cn(
-            "group/action relative flex h-9 w-9 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out hover:w-24",
+            "group/action relative flex h-9 w-9 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out",
+            "hover:w-24",
             hoverColorClass,
             className
           )}
         >
-          <div className="h-4 w-4 transition-colors group-hover/action:text-white">{children}</div>
+          <div className={cn("h-4 w-4 transition-colors group-hover/action:text-white", iconColorClass)}>{children}</div>
           <span className="absolute left-10 whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-opacity duration-200 group-hover/action:opacity-100">
             {label}
           </span>
@@ -187,26 +189,26 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div 
-                  className="inline-flex justify-end items-center gap-2 rounded-full p-1 bg-muted/70 border"
+                  className="inline-flex justify-end items-center gap-2 rounded-full p-1 bg-muted border"
                   onClick={(e) => e.stopPropagation()}
                 >
-                    <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" hoverColorClass="hover:bg-blue-500" >
-                        <Eye className="text-blue-500" />
+                    <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" hoverColorClass="hover:bg-blue-500" iconColorClass="text-blue-500" >
+                        <Eye />
                     </ActionButton>
-                    <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" hoverColorClass="hover:bg-yellow-500">
-                        <Edit className="text-yellow-500"/>
+                    <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" hoverColorClass="hover:bg-yellow-500" iconColorClass="text-yellow-500">
+                        <Edit />
                     </ActionButton>
-                     <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" hoverColorClass="hover:bg-red-500">
-                        <Trash2 className="text-red-500"/>
+                     <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" hoverColorClass="hover:bg-red-500" iconColorClass="text-red-500">
+                        <Trash2 />
                     </ActionButton>
 
                     <Separator orientation="vertical" className="h-6 mx-1" />
 
-                    <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" hoverColorClass="hover:bg-green-500">
-                       <ListChecks className="text-green-500"/>
+                    <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" hoverColorClass="hover:bg-green-500" iconColorClass="text-green-500">
+                       <ListChecks />
                     </ActionButton>
-                    <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" hoverColorClass="hover:bg-indigo-500">
-                        <PlusCircle className="text-indigo-500"/>
+                    <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" hoverColorClass="hover:bg-indigo-500" iconColorClass="text-indigo-500">
+                        <PlusCircle />
                     </ActionButton>
                 </div>
               </TableCell>
