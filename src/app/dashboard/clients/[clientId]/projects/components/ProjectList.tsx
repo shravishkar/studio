@@ -50,23 +50,20 @@ interface ActionButtonProps {
   children: React.ReactNode;
   label: string;
   className?: string;
-  iconClassName?: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className, iconClassName }) => {
+const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label, className }) => {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
         <button
           onClick={onClick}
           className={cn(
-            "group/action relative flex h-8 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out hover:w-24",
-            "w-8", 
+            "group/action relative flex h-8 w-8 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out hover:w-24",
             className
           )}
         >
-          <div className={cn("absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover/action:opacity-10", iconClassName?.replace('text-', 'bg-'))}></div>
-          <div className={cn('h-4 w-4 transition-colors', iconClassName)}>{children}</div>
+          <div className="h-4 w-4 transition-colors">{children}</div>
           <span className="absolute left-10 text-xs font-semibold opacity-0 transition-opacity duration-200 group-hover/action:opacity-100">
             {label}
           </span>
@@ -188,25 +185,25 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div 
-                  className="inline-flex justify-end items-center gap-1 bg-muted p-1 rounded-full border"
+                  className="inline-flex justify-end items-center gap-1"
                   onClick={(e) => e.stopPropagation()}
                 >
-                    <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" iconClassName="text-blue-500" >
+                    <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" className="hover:bg-blue-100 text-blue-500" >
                         <Eye />
                     </ActionButton>
-                    <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" iconClassName="text-yellow-500">
+                    <ActionButton tooltip="Edit Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} label="Edit" className="hover:bg-yellow-100 text-yellow-500">
                         <Edit />
                     </ActionButton>
-                     <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" iconClassName="text-red-500">
+                     <ActionButton tooltip="Delete Project" onClick={(e) => handleDeleteClick(e, project)} label="Delete" className="hover:bg-red-100 text-red-500">
                         <Trash2 />
                     </ActionButton>
 
                     <Separator orientation="vertical" className="h-6 mx-1" />
 
-                    <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" iconClassName="text-green-500">
+                    <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" className="hover:bg-green-100 text-green-500">
                        <ListChecks />
                     </ActionButton>
-                    <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" iconClassName="text-indigo-500">
+                    <ActionButton tooltip="Add Task" onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} label="Add" className="hover:bg-indigo-100 text-indigo-500">
                         <PlusCircle />
                     </ActionButton>
                 </div>
