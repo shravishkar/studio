@@ -189,7 +189,10 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                 {new Date(project.updatedAt).toLocaleDateString()}
               </TableCell>
               <TableCell className="text-right">
-                <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                <div 
+                  className="inline-flex justify-end items-center gap-1 bg-muted p-1 rounded-full border"
+                  onClick={(e) => e.stopPropagation()}
+                >
                     <ActionButton tooltip="View Project" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} label="View" className="hover:bg-blue-500 hover:text-white" iconClassName="text-blue-500 group-hover:text-white" >
                         <Eye />
                     </ActionButton>
@@ -200,7 +203,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                         <Trash2 />
                     </ActionButton>
 
-                    <Separator orientation="vertical" className="h-6 mx-2" />
+                    <Separator orientation="vertical" className="h-6 mx-1" />
 
                     <ActionButton tooltip="View Tasks" onClick={(e) => handleViewTasks(e, project)} label="Tasks" className="hover:bg-green-500 hover:text-white" iconClassName="text-green-500 group-hover:text-white">
                        <ListChecks />
