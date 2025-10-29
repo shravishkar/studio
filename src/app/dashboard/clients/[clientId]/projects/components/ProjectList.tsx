@@ -50,10 +50,9 @@ interface ActionButtonProps {
   label: string;
   className?: string;
   hoverClassName?: string;
-  iconClassName?: string;
 }
 
-const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, className, hoverClassName, iconClassName }) => {
+const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, className, hoverClassName }) => {
   return (
     <button
       onClick={onClick}
@@ -64,12 +63,7 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, classNa
         hoverClassName
       )}
     >
-      <div className={cn("absolute flex items-center justify-center opacity-0 transition-all duration-300 group-hover/action:opacity-100", iconClassName)}>
-          <div className="opacity-0 group-hover/action:opacity-100 transition-opacity duration-300">
-            {children}
-          </div>
-      </div>
-      <div className="absolute flex items-center justify-center group-hover/action:opacity-0 transition-opacity duration-300">
+      <div className="absolute flex items-center justify-center transition-opacity duration-300 group-hover/action:opacity-0">
         {children}
       </div>
       <span className="pointer-events-none absolute inset-0 flex items-center justify-center whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover/action:pointer-events-auto group-hover/action:opacity-100">
@@ -78,6 +72,7 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, classNa
     </button>
   );
 };
+
 
 const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const { tenantId, token } = useAuth();
@@ -201,7 +196,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <ActionButton 
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
                       label="View"
-                      iconClassName="group-hover/action:text-white text-blue-500" 
+                      className="text-blue-500 border-blue-200" 
                       hoverClassName="hover:bg-blue-500 hover:border-blue-700"
                     >
                         <Eye className="h-4 w-4" />
@@ -209,7 +204,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <ActionButton 
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
                       label="Edit" 
-                      iconClassName="group-hover/action:text-white text-yellow-500"
+                      className="text-yellow-500 border-yellow-200"
                       hoverClassName="hover:bg-yellow-500 hover:border-yellow-700"
                     >
                         <Edit className="h-4 w-4" />
@@ -217,7 +212,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                      <ActionButton 
                        onClick={(e) => handleDeleteClick(e, project)} 
                        label="Delete" 
-                       iconClassName="group-hover/action:text-white text-red-500"
+                       className="text-red-500 border-red-200"
                        hoverClassName="hover:bg-red-500 hover:border-red-700"
                      >
                         <Trash2 className="h-4 w-4" />
@@ -228,7 +223,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <ActionButton 
                       onClick={(e) => handleViewTasks(e, project)} 
                       label="Tasks" 
-                      iconClassName="group-hover/action:text-white text-green-500"
+                      className="text-green-500 border-green-200"
                       hoverClassName="hover:bg-green-500 hover:border-green-700"
                     >
                        <ListChecks className="h-4 w-4" />
@@ -236,7 +231,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <ActionButton 
                       onClick={(e) => handleAddTaskClick(e, project)}
                       label="Add" 
-                      iconClassName="group-hover/action:text-white text-indigo-500"
+                      className="text-indigo-500 border-indigo-200"
                       hoverClassName="hover:bg-indigo-500 hover:border-indigo-700"
                     >
                         <PlusCircle className="h-4 w-4" />
@@ -308,6 +303,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                   if (tasksToShow && tasksToShow._id === projectForNewTask._id) {
                     handleViewTasks(new MouseEvent('click'), projectForNewTask);
                   }
+                  setProjectForNewTask(null);
                 }}
                 setOpen={(isOpen) => !isOpen && setProjectForNewTask(null)}
             />
