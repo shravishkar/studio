@@ -32,11 +32,11 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from '@/components/ui/button';
-import { Edit, ListChecks, PlusCircle, Loader2, Trash2 } from 'lucide-react';
+import { Edit, ListChecks, PlusCircle, Loader2, Trash2, Eye } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
-import { Eye } from 'lucide-react';
+import { Separator } from '@/components/ui/separator';
 
 interface ProjectListProps {
   projects: Project[];
@@ -57,16 +57,16 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, classNa
     <button
       onClick={onClick}
       className={cn(
-        "group/action relative flex h-8 w-8 items-center justify-center rounded-full border bg-background transition-all duration-300 ease-in-out",
-        "hover:w-28",
+        "group/action relative flex h-9 w-9 items-center justify-center rounded-full border bg-background transition-all duration-300 ease-in-out",
+        "hover:w-24",
         className,
         hoverClassName
       )}
     >
-      <div className={cn("transition-colors group-hover/action:text-white", iconClassName)}>
+      <div className={cn("transition-all duration-300 group-hover/action:opacity-0", iconClassName)}>
           {children}
       </div>
-      <span className="pointer-events-none absolute ml-6 whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-all duration-200 group-hover/action:pointer-events-auto group-hover/action:opacity-100">
+      <span className="pointer-events-none absolute inset-0 flex items-center justify-center whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover/action:pointer-events-auto group-hover/action:opacity-100">
         {label}
       </span>
     </button>
@@ -184,14 +184,14 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div 
-                  className="inline-flex justify-end items-center gap-2"
+                  className="inline-flex justify-end items-center gap-1 rounded-full bg-muted p-1 border"
                   onClick={(e) => e.stopPropagation()}
                 >
                     <ActionButton 
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))} 
                       label="View"
                       iconClassName="text-blue-500" 
-                      hoverClassName="hover:bg-blue-500 hover:border-blue-500"
+                      hoverClassName="hover:bg-blue-500 hover:border-blue-700"
                     >
                         <Eye className="h-4 w-4" />
                     </ActionButton>
@@ -199,7 +199,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))} 
                       label="Edit" 
                       iconClassName="text-yellow-500"
-                      hoverClassName="hover:bg-yellow-500 hover:border-yellow-500"
+                      hoverClassName="hover:bg-yellow-500 hover:border-yellow-700"
                     >
                         <Edit className="h-4 w-4" />
                     </ActionButton>
@@ -207,15 +207,18 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                        onClick={(e) => handleDeleteClick(e, project)} 
                        label="Delete" 
                        iconClassName="text-red-500"
-                       hoverClassName="hover:bg-red-500 hover:border-red-500"
+                       hoverClassName="hover:bg-red-500 hover:border-red-700"
                      >
                         <Trash2 className="h-4 w-4" />
                     </ActionButton>
+
+                    <Separator orientation="vertical" className="h-6 mx-1 bg-border" />
+                    
                     <ActionButton 
                       onClick={(e) => handleViewTasks(e, project)} 
                       label="Tasks" 
                       iconClassName="text-green-500"
-                      hoverClassName="hover:bg-green-500 hover:border-green-500"
+                      hoverClassName="hover:bg-green-500 hover:border-green-700"
                     >
                        <ListChecks className="h-4 w-4" />
                     </ActionButton>
@@ -223,7 +226,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                       onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} 
                       label="Add" 
                       iconClassName="text-indigo-500"
-                      hoverClassName="hover:bg-indigo-500 hover:border-indigo-500"
+                      hoverClassName="hover:bg-indigo-500 hover:border-indigo-700"
                     >
                         <PlusCircle className="h-4 w-4" />
                     </ActionButton>
