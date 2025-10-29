@@ -60,7 +60,8 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label
         <button
           onClick={onClick}
           className={cn(
-            "group/action relative flex h-8 items-center justify-center rounded-full transition-all duration-300 ease-in-out w-8 hover:w-24",
+            "group/action relative flex h-8 items-center justify-center rounded-full bg-background transition-all duration-300 ease-in-out hover:w-24",
+            "w-8", 
             className
           )}
         >
