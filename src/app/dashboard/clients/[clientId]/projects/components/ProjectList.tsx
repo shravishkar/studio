@@ -60,11 +60,11 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, tooltip, children, label
         <button
           onClick={onClick}
           className={cn(
-            "group/action relative flex h-8 w-8 items-center justify-center rounded-full transition-all duration-300 ease-in-out hover:w-24",
+            "group/action relative flex h-8 items-center justify-center rounded-full transition-all duration-300 ease-in-out w-8 hover:w-24",
             className
           )}
         >
-          <div className={cn("absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover/action:opacity-10", iconClassName.replace('text-', 'bg-'))}></div>
+          <div className={cn("absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover/action:opacity-10", iconClassName?.replace('text-', 'bg-'))}></div>
           <div className={cn('h-4 w-4 transition-colors', iconClassName)}>{children}</div>
           <span className="absolute left-10 text-xs font-semibold opacity-0 transition-opacity duration-200 group-hover/action:opacity-100">
             {label}
