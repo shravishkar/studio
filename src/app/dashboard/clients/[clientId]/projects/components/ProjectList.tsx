@@ -37,6 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
+import AddTaskForm from '../../projects/[projectId]/components/AddTaskForm';
 
 interface ProjectListProps {
   projects: Project[];
@@ -63,7 +64,7 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, classNa
         hoverClassName
       )}
     >
-      <div className={cn("transition-all duration-300 group-hover/action:opacity-0", iconClassName)}>
+      <div className={cn("absolute flex items-center justify-center transition-all duration-300 group-hover/action:opacity-0", iconClassName)}>
           {children}
       </div>
       <span className="pointer-events-none absolute inset-0 flex items-center justify-center whitespace-nowrap text-xs font-semibold text-white opacity-0 transition-all duration-300 group-hover/action:pointer-events-auto group-hover/action:opacity-100">
@@ -83,6 +84,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const [tasksToShow, setTasksToShow] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+  const [projectForNewTask, setProjectForNewTask] = useState<Project | null>(null);
 
 
   const getClientId = (project: Project) => {
@@ -97,6 +99,11 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
   const handleActionClick = (e: React.MouseEvent, action: () => void) => {
     e.stopPropagation();
     action();
+  }
+
+  const handleAddTaskClick = (e: React.MouseEvent, project: Project) => {
+    e.stopPropagation();
+    setProjectForNewTask(project);
   }
 
   const handleRowClick = (project: Project) => {
@@ -223,7 +230,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                        <ListChecks className="h-4 w-4" />
                     </ActionButton>
                     <ActionButton 
-                      onClick={(e) => handleActionClick(e, () => { /* Logic for adding a task */ })} 
+                      onClick={(e) => handleAddTaskClick(e, project)}
                       label="Add" 
                       iconClassName="text-indigo-500"
                       hoverClassName="hover:bg-indigo-500 hover:border-indigo-700"
@@ -283,6 +290,26 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      {projectForNewTask && (
+        <Dialog open={!!projectForNewTask} onOpenChange={(isOpen) => !isOpen && setProjectForNewTask(null)}>
+            <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+                <DialogTitle>Add New Task to {projectForNewTask.name}</DialogTitle>
+            </DialogHeader>
+            <AddTaskForm
+                clientId={getClientId(projectForNewTask)}
+                projectId={projectForNewTask._id}
+                onTaskAdded={() => {
+                  if (tasksToShow && tasksToShow._id === projectForNewTask._id) {
+                    handleViewTasks(new MouseEvent('click'), projectForNewTask);
+                  }
+                }}
+                setOpen={(isOpen) => !isOpen && setProjectForNewTask(null)}
+            />
+            </DialogContent>
+        </Dialog>
+      )}
 
 
       <AlertDialog open={!!projectToDelete} onOpenChange={(isOpen) => !isOpen && setProjectToDelete(null)}>
