@@ -156,7 +156,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                 <div className="flex justify-end items-center gap-2" onClick={(e) => e.stopPropagation()}>
 
                     {/* Project Actions Capsule */}
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-full">
+                    <div className="flex items-center gap-1 bg-muted p-1 rounded-full">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-blue-100 dark:hover:bg-blue-900/50 hover:w-auto hover:px-3" onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))}>
@@ -189,7 +189,7 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <Separator orientation="vertical" className="h-6" />
 
                     {/* Task Actions Capsule */}
-                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-full">
+                    <div className="flex items-center gap-1 bg-muted p-1 rounded-full">
                         <Tooltip>
                             <TooltipTrigger asChild>
                                 <Button variant="ghost" size="icon" className="group h-7 w-7 rounded-full hover:bg-green-100 dark:hover:bg-green-900/50 hover:w-auto hover:px-3" onClick={(e) => handleViewTasks(e, project)}>
@@ -286,3 +286,5 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
 };
 
 export default ProjectList;
+
+    
