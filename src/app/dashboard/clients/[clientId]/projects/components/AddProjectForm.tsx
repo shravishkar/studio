@@ -172,7 +172,11 @@ const AddProjectForm: FC<AddProjectFormProps> = ({ clientId, onProjectAdded, set
             </FormItem>
           )}
         />
-        <Button type="submit" disabled={isSubmitting}>
+        <Button 
+          type="submit" 
+          disabled={isSubmitting}
+          className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 ease-in-out transform hover:scale-105 border-none"
+        >
           {isSubmitting ? 'Adding...' : 'Add Project'}
         </Button>
       </form>

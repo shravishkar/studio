@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/hooks/use-auth';
 import { getProject, getTasks, deleteTask } from '@/lib/api';
-import type { Project, Task } from '@/lib/types';
+import type { Project, Task, ProjectFile } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
@@ -20,6 +20,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import AddTaskForm from './AddTaskForm';
+import AddProjectFilesForm from './AddProjectFilesForm';
 import EditTaskForm from '../../components/EditTaskForm';
 import {
   Table,
@@ -77,6 +78,7 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
+  const [isAddFilesOpen, setAddFilesOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isDeletingTask, setIsDeletingTask] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
@@ -165,15 +167,13 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
     }
   };
 
-  const handleDownloadFile = () => {
-    if (project?.projectFileBinary) {
-      const link = document.createElement('a');
-      link.href = project.projectFileBinary;
-      link.download = project.projectFileName || 'download';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-    }
+  const handleDownloadFile = (file: ProjectFile) => {
+    const link = document.createElement('a');
+    link.href = file.fileBinary;
+    link.download = file.fileName || 'download';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   if (isLoading) {
@@ -262,18 +262,48 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
             </div>
           </div>
 
-          {project.projectFileBinary && (
-            <div>
-                <h3 className="font-semibold text-lg mb-2">Project File</h3>
-                <div className="flex items-center space-x-4">
-                    <p className="text-muted-foreground">{project.projectFileName}</p>
-                    <Button onClick={handleDownloadFile} size="sm">
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
+          <div>
+            <div className="flex justify-between items-center mb-2">
+                <h3 className="font-semibold text-lg">Project Files</h3>
+                <Dialog open={isAddFilesOpen} onOpenChange={setAddFilesOpen}>
+                <DialogTrigger asChild>
+                    <Button size="sm">
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Add Files
                     </Button>
-                </div>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                    <DialogTitle>Add New Files</DialogTitle>
+                    </DialogHeader>
+                    <AddProjectFilesForm 
+                        clientId={clientId}
+                        projectId={projectId}
+                        onFilesAdded={() => {
+                            fetchProject();
+                            setAddFilesOpen(false);
+                        }}
+                        setOpen={setAddFilesOpen}
+                    />
+                </DialogContent>
+                </Dialog>
             </div>
+            {project.projectFiles && project.projectFiles.length > 0 ? (
+                <div className="space-y-2">
+                {project.projectFiles.map(file => (
+                    <div key={file._id} className="flex items-center justify-between p-2 rounded-md border">
+                        <p className="text-muted-foreground">{file.fileName}</p>
+                        <Button onClick={() => handleDownloadFile(file)} size="sm">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download
+                        </Button>
+                    </div>
+                ))}
+                </div>
+            ) : (
+                <p className="text-muted-foreground">No files for this project.</p>
             )}
+            </div>
         </CardContent>
       </Card>
 

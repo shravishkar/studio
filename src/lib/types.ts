@@ -23,6 +23,13 @@ export interface PaginatedResponse<T> {
     currentPage: number;
 }
 
+export interface ProjectFile {
+    _id: string;
+    fileName: string;
+    fileType: string;
+    fileBinary: string;
+}
+
 export interface Project {
     _id: string;
     clientId: string | Client;
@@ -33,9 +40,7 @@ export interface Project {
     isActive: boolean;
     createdAt: string;
     updatedAt: string;
-    projectFileBinary?: string; 
-    projectFileName?: string;
-    projectFileType?: string;
+    projectFiles: ProjectFile[];
 }
 
 export interface Task {
@@ -64,11 +69,7 @@ export interface NewProject {
     status: 'active' | 'completed' | 'on-hold';
     isActive?: boolean;
     clientId: string;
-    projectFileBinary?: string; 
-    projectFileName?: string;
-    projectFileType?: string;
 }
-
 
 export interface NewTask {
     title: string;
