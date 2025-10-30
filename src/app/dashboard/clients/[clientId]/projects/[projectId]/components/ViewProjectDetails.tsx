@@ -7,11 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/hooks/use-auth';
 import { getProject, getTasks, deleteTask } from '@/lib/api';
-import type { Project, Task, Document } from '@/lib/types';
+import type { Project, Task } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Loader2, Edit, Trash2, Download } from 'lucide-react';
+import { PlusCircle, Loader2, Edit, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -20,7 +20,6 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import AddTaskForm from './AddTaskForm';
-import AddProjectFilesForm from './AddProjectFilesForm';
 import EditTaskForm from '../../components/EditTaskForm';
 import {
   Table,
@@ -74,12 +73,10 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const { toast } = useToast();
   const { tenantId, token } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
-  const [files, setFiles] = useState<Document[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
-  const [isAddFilesOpen, setAddFilesOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isDeletingTask, setIsDeletingTask] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
@@ -93,22 +90,6 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
     try {
       const projectData = await getProject(tenantId, token, clientId, projectId);
       setProject(projectData);
-      // Assuming project data might contain initial files
-      if (projectData.projectFiles) {
-        // This is tricky because ProjectFile and Document are different.
-        // We'll just map what we can for display.
-        const initialFiles = projectData.projectFiles.map(pf => ({
-          _id: pf._id,
-          name: pf.fileName,
-          url: '', // This needs to be resolved. For now, empty.
-          projectId,
-          clientId,
-          tag: '',
-          createdDate: new Date().toISOString(),
-          uploadedBy: '',
-          uploaderId: ''
-        }));
-      }
     } catch (error: any) {
       toast({ title: "Error", description: "Failed to fetch project details.", variant: "destructive" });
     } finally {
@@ -269,49 +250,6 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
               <p className="text-muted-foreground">{new Date(project.updatedAt).toLocaleDateString()}</p>
             </div>
           </div>
-
-          <div>
-            <div className="flex justify-between items-center mb-2">
-                <h3 className="font-semibold text-lg">Project Files</h3>
-                <Dialog open={isAddFilesOpen} onOpenChange={setAddFilesOpen}>
-                  <DialogTrigger asChild>
-                    <Button size="sm">
-                        <PlusCircle className="mr-2 h-4 w-4" />
-                        Add File
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                      <DialogTitle>Add New File</DialogTitle>
-                    </DialogHeader>
-                    <AddProjectFilesForm 
-                      clientId={clientId}
-                      projectId={projectId}
-                      onFilesAdded={(newFile) => {
-                        setFiles(currentFiles => [...currentFiles, newFile]);
-                        setAddFilesOpen(false);
-                      }}
-                      setOpen={setAddFilesOpen}
-                    />
-                  </DialogContent>
-                </Dialog>
-            </div>
-            {files.length > 0 ? (
-                <div className="space-y-2">
-                {files.map(file => (
-                    <div key={file._id} className="flex items-center justify-between p-2 rounded-md border">
-                        <p className="text-muted-foreground">{file.name}</p>
-                        <Button onClick={() => {}} size="sm" variant="outline" disabled>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download
-                        </Button>
-                    </div>
-                ))}
-                </div>
-            ) : (
-                <p className="text-muted-foreground">No files for this project.</p>
-            )}
-            </div>
         </CardContent>
       </Card>
 
