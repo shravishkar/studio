@@ -166,15 +166,12 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
-
-  const handleDownloadFile = (file: ProjectFile) => {
-    const link = document.createElement('a');
-    link.href = file.fileBinary;
-    link.download = file.fileName || 'download';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+  
+  const dummyFiles: Omit<ProjectFile, 'fileBinary' | 'fileType'>[] = [
+    { _id: '1', fileName: 'initial-design-mockup.fig' },
+    { _id: '2', fileName: 'project-brief.pdf' },
+    { _id: '3', fileName: 'brand-assets.zip' },
+  ];
 
   if (isLoading) {
     return (
@@ -265,35 +262,17 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
           <div>
             <div className="flex justify-between items-center mb-2">
                 <h3 className="font-semibold text-lg">Project Files</h3>
-                <Dialog open={isAddFilesOpen} onOpenChange={setAddFilesOpen}>
-                <DialogTrigger asChild>
-                    <Button size="sm">
+                <Button size="sm" disabled>
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Add Files
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                    <DialogTitle>Add New Files</DialogTitle>
-                    </DialogHeader>
-                    <AddProjectFilesForm 
-                        clientId={clientId}
-                        projectId={projectId}
-                        onFilesAdded={() => {
-                            fetchProject();
-                            setAddFilesOpen(false);
-                        }}
-                        setOpen={setAddFilesOpen}
-                    />
-                </DialogContent>
-                </Dialog>
+                </Button>
             </div>
-            {project.projectFiles && project.projectFiles.length > 0 ? (
+            {dummyFiles.length > 0 ? (
                 <div className="space-y-2">
-                {project.projectFiles.map(file => (
+                {dummyFiles.map(file => (
                     <div key={file._id} className="flex items-center justify-between p-2 rounded-md border">
                         <p className="text-muted-foreground">{file.fileName}</p>
-                        <Button onClick={() => handleDownloadFile(file)} size="sm">
+                        <Button onClick={() => {}} size="sm" disabled>
                             <Download className="mr-2 h-4 w-4" />
                             Download
                         </Button>
@@ -377,14 +356,24 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                                 label="Edit"
                                 className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
                             >
-                                <Edit className="h-4 w-4" />
+                                <div className="absolute opacity-100 group-hover/action:opacity-0 transition-opacity duration-300">
+                                    <Edit className="h-4 w-4" />
+                                </div>
+                                <div className="absolute opacity-0 group-hover/action:opacity-100 transition-opacity duration-300">
+                                    <span className="text-xs font-semibold text-white">Edit</span>
+                                </div>
                             </ActionButton>
                             <ActionButton
                                 onClick={(e) => handleDeleteTaskClick(e, task)}
                                 label="Delete"
                                 className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
                             >
-                                <Trash2 className="h-4 w-4" />
+                                <div className="absolute opacity-100 group-hover/action:opacity-0 transition-opacity duration-300">
+                                    <Trash2 className="h-4 w-4" />
+                                </div>
+                                <div className="absolute opacity-0 group-hover/action:opacity-100 transition-opacity duration-300">
+                                    <span className="text-xs font-semibold text-white">Delete</span>
+                                </div>
                             </ActionButton>
                         </div>
                     </TableCell>
