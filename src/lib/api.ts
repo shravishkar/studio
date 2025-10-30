@@ -1,6 +1,6 @@
 
 
-import type { Client, GetClientsResponse, GetProjectsResponse, GetTasksResponse, NewClient, NewProject, NewTask, Project, Task } from "./types";
+import type { Client, GetClientsResponse, GetProjectsResponse, GetTasksResponse, NewClient, NewProject, NewTask, Project, Task, ProjectFile } from "./types";
 
 interface ApiListResponse {
     success: boolean;
@@ -236,7 +236,7 @@ export async function addProjectFiles(tenantId: string, token: string, clientId:
         throw new Error("API base URL is not configured.");
     }
 
-    const url = `${baseUrl}/projects/${tenantId}/${clientId}/${projectId}/files`;
+    const url = `${baseUrl}/projects/${clientId}/${projectId}/files`;
 
     try {
         const response = await fetch(url, {
@@ -374,13 +374,12 @@ export async function getProject(tenantId: string, token: string, clientId: stri
 }
 
 // Function to retrieve a single task by ID
-export async function getTask(tenantId: string, token: string, taskId: string): Promise<Task> {
+export async function getTask(token: string, taskId: string): Promise<Task> {
     const baseUrl = process.env.NEXT_PUBLIC_API_BASE_URL;
     if (!baseUrl) {
         throw new Error("API base URL is not configured.");
     }
 
-    // Assuming a /tasks/single/:taskId endpoint or similar
     const url = `${baseUrl}/tasks/single/${taskId}`;
 
     try {
@@ -562,7 +561,7 @@ export async function updateTask(token: string, projectId: string, taskId: strin
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`,
+                'Authorization': 'Bearer ' + token,
             },
             body: JSON.stringify(updatedTask),
         });
@@ -583,3 +582,5 @@ export async function updateTask(token: string, projectId: string, taskId: strin
         throw error instanceof Error ? error : new Error("An unknown error occurred.");
     }
 }
+
+    

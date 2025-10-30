@@ -55,7 +55,7 @@ const AddProjectFilesForm: FC<AddProjectFilesFormProps> = ({ clientId, projectId
       return;
     }
     
-    const selectedFiles = Array.from(data.files);
+    const selectedFiles = data.files ? Array.from(data.files) : [];
     if (selectedFiles.length === 0) {
       form.setError('files', { type: 'manual', message: 'At least one file is required' });
       return;
@@ -67,12 +67,12 @@ const AddProjectFilesForm: FC<AddProjectFilesFormProps> = ({ clientId, projectId
       const filesData = await Promise.all(selectedFiles.map(file => {
         return new Promise<{ file: string; fileName: string; fileType: string; }>((resolve, reject) => {
           const reader = new FileReader();
-          reader.readAsDataURL(file);
+          reader.readAsDataURL(file as File);
           reader.onloadend = () => {
             resolve({
               file: reader.result as string,
-              fileName: file.name,
-              fileType: file.type,
+              fileName: (file as File).name,
+              fileType: (file as File).type,
             });
           };
           reader.onerror = error => {
@@ -121,3 +121,5 @@ const AddProjectFilesForm: FC<AddProjectFilesFormProps> = ({ clientId, projectId
 };
 
 export default AddProjectFilesForm;
+
+    
