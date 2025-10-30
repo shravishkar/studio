@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from '@/hooks/use-auth';
 import { getProject, getTasks, deleteTask } from '@/lib/api';
-import type { Project, Task, ProjectFile } from '@/lib/types';
+import type { Project, Task, Document } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
@@ -57,13 +57,13 @@ const ActionButton: FC<{ onClick: (e: MouseEvent) => void; children: React.React
         className
       )}
     >
-      <div className="absolute flex h-full w-full items-center justify-center opacity-100 transition-opacity duration-300 group-hover/action:opacity-0">
-        {children}
-      </div>
-      <div className="absolute flex h-full w-full items-center justify-center opacity-0 transition-opacity duration-300 group-hover/action:opacity-100">
+      <div className="absolute opacity-0 group-hover/action:opacity-100 transition-opacity duration-300">
         <span className="whitespace-nowrap text-xs font-semibold text-white">
           {label}
         </span>
+      </div>
+      <div className="absolute opacity-100 group-hover/action:opacity-0 transition-opacity duration-300">
+        {children}
       </div>
     </button>
   );
@@ -74,6 +74,7 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const { toast } = useToast();
   const { tenantId, token } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
+  const [files, setFiles] = useState<Document[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
@@ -92,6 +93,22 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
     try {
       const projectData = await getProject(tenantId, token, clientId, projectId);
       setProject(projectData);
+      // Assuming project data might contain initial files
+      if (projectData.projectFiles) {
+        // This is tricky because ProjectFile and Document are different.
+        // We'll just map what we can for display.
+        const initialFiles = projectData.projectFiles.map(pf => ({
+          _id: pf._id,
+          name: pf.fileName,
+          url: '', // This needs to be resolved. For now, empty.
+          projectId,
+          clientId,
+          tag: '',
+          createdDate: new Date().toISOString(),
+          uploadedBy: '',
+          uploaderId: ''
+        }));
+      }
     } catch (error: any) {
       toast({ title: "Error", description: "Failed to fetch project details.", variant: "destructive" });
     } finally {
@@ -166,12 +183,6 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
         return 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
     }
   };
-  
-  const dummyFiles: Omit<ProjectFile, 'fileBinary' | 'fileType'>[] = [
-    { _id: '1', fileName: 'initial-design-mockup.fig' },
-    { _id: '2', fileName: 'project-brief.pdf' },
-    { _id: '3', fileName: 'brand-assets.zip' },
-  ];
 
   if (isLoading) {
     return (
@@ -262,17 +273,35 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
           <div>
             <div className="flex justify-between items-center mb-2">
                 <h3 className="font-semibold text-lg">Project Files</h3>
-                <Button size="sm" disabled>
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Files
-                </Button>
+                <Dialog open={isAddFilesOpen} onOpenChange={setAddFilesOpen}>
+                  <DialogTrigger asChild>
+                    <Button size="sm">
+                        <PlusCircle className="mr-2 h-4 w-4" />
+                        Add File
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[425px]">
+                    <DialogHeader>
+                      <DialogTitle>Add New File</DialogTitle>
+                    </DialogHeader>
+                    <AddProjectFilesForm 
+                      clientId={clientId}
+                      projectId={projectId}
+                      onFilesAdded={(newFile) => {
+                        setFiles(currentFiles => [...currentFiles, newFile]);
+                        setAddFilesOpen(false);
+                      }}
+                      setOpen={setAddFilesOpen}
+                    />
+                  </DialogContent>
+                </Dialog>
             </div>
-            {dummyFiles.length > 0 ? (
+            {files.length > 0 ? (
                 <div className="space-y-2">
-                {dummyFiles.map(file => (
+                {files.map(file => (
                     <div key={file._id} className="flex items-center justify-between p-2 rounded-md border">
-                        <p className="text-muted-foreground">{file.fileName}</p>
-                        <Button onClick={() => {}} size="sm" disabled>
+                        <p className="text-muted-foreground">{file.name}</p>
+                        <Button onClick={() => {}} size="sm" variant="outline" disabled>
                             <Download className="mr-2 h-4 w-4" />
                             Download
                         </Button>
@@ -356,24 +385,14 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                                 label="Edit"
                                 className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
                             >
-                                <div className="absolute opacity-100 group-hover/action:opacity-0 transition-opacity duration-300">
-                                    <Edit className="h-4 w-4" />
-                                </div>
-                                <div className="absolute opacity-0 group-hover/action:opacity-100 transition-opacity duration-300">
-                                    <span className="text-xs font-semibold text-white">Edit</span>
-                                </div>
+                                <Edit className="h-4 w-4" />
                             </ActionButton>
                             <ActionButton
                                 onClick={(e) => handleDeleteTaskClick(e, task)}
                                 label="Delete"
                                 className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
                             >
-                                <div className="absolute opacity-100 group-hover/action:opacity-0 transition-opacity duration-300">
-                                    <Trash2 className="h-4 w-4" />
-                                </div>
-                                <div className="absolute opacity-0 group-hover/action:opacity-100 transition-opacity duration-300">
-                                    <span className="text-xs font-semibold text-white">Delete</span>
-                                </div>
+                                <Trash2 className="h-4 w-4" />
                             </ActionButton>
                         </div>
                     </TableCell>
