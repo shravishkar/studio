@@ -21,15 +21,9 @@ function EditProjectPageContent({ params }: { params: Promise<{ clientId: string
   const router = useRouter();
   const resolvedParams = use(params);
 
-  // The logic for checking if the form is dirty is now inside the EditProjectForm.
-  // We can't easily access it here without state management or lifting state up.
-  // The 'handleBackClick' will just navigate back, and the form's internal logic
-  // will handle the discard confirmation.
   const [showDiscardDialog, setShowDiscardDialog] = useState(false);
 
   const handleBackClick = () => {
-    // This is a simplified back navigation. The actual logic to check for changes
-    // is now self-contained within the form component.
     router.back();
   };
 
