@@ -11,7 +11,7 @@ import type { Project, Task } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
-import { PlusCircle, Loader2, Edit, Trash2 } from 'lucide-react';
+import { PlusCircle, Loader2, Edit, Trash2, Paperclip, Download } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/dialog';
 import AddTaskForm from './AddTaskForm';
 import EditTaskForm from '../../components/EditTaskForm';
+import AddFileDialog from './AddFileDialog';
 import {
   Table,
   TableBody,
@@ -74,11 +75,16 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
   const { tenantId, token } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [projectFiles, setProjectFiles] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingTasks, setIsLoadingTasks] = useState(true);
+  const [isLoadingFiles, setIsLoadingFiles] = useState(true);
   const [isAddTaskOpen, setAddTaskOpen] = useState(false);
+  const [isAddFileOpen, setAddFileOpen] = useState(false);
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [fileToDelete, setFileToDelete] = useState<any | null>(null);
   const [isDeletingTask, setIsDeletingTask] = useState(false);
+  const [isDeletingFile, setIsDeletingFile] = useState(false);
   const [taskToEdit, setTaskToEdit] = useState<Task | null>(null);
 
   const fetchProject = useCallback(async () => {
@@ -113,10 +119,48 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
     }
   }, [tenantId, token, clientId, projectId, toast]);
 
+  const fetchProjectFiles = useCallback(async () => {
+    if (!projectId) return;
+
+    setIsLoadingFiles(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/files`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch files');
+      }
+      const files = await response.json();
+      setProjectFiles(files);
+    } catch (error) {
+      toast({ title: "Error", description: "Failed to fetch project files.", variant: "destructive" });
+    } finally {
+      setIsLoadingFiles(false);
+    }
+  }, [projectId, toast]);
+
   useEffect(() => {
     fetchProject();
     fetchTasks();
-  }, [fetchProject, fetchTasks]);
+    fetchProjectFiles();
+  }, [fetchProject, fetchTasks, fetchProjectFiles]);
+
+  const handleDownload = async (fileName: string) => {
+    try {
+      const response = await fetch(`/api/projects/${projectId}/files?file=${fileName}`);
+      if (!response.ok) {
+        throw new Error('File download failed');
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (error) {
+      toast({ title: 'Error', description: 'Failed to download file.', variant: 'destructive' });
+    }
+  };
   
   const taskStatusCounts = useMemo(() => {
     return tasks.reduce((acc, task) => {
@@ -124,6 +168,34 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
         return acc;
     }, {} as Record<Task['status'], number>);
   }, [tasks]);
+
+  const handleDeleteFileClick = (e: MouseEvent, file: any) => {
+    e.stopPropagation();
+    setFileToDelete(file);
+  };
+
+  const handleConfirmDeleteFile = async () => {
+    if (!fileToDelete) return;
+
+    setIsDeletingFile(true);
+    try {
+      const response = await fetch(`/api/projects/${projectId}/files?file=${fileToDelete.name}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('File deletion failed');
+      }
+
+      toast({ title: "Success", description: "File deleted successfully." });
+      fetchProjectFiles();
+      setFileToDelete(null);
+    } catch (error: any) {
+      toast({ title: "Error", description: error.message || "Failed to delete file.", variant: "destructive" });
+    } finally {
+      setIsDeletingFile(false);
+    }
+  };
 
   const handleDeleteTaskClick = (e: MouseEvent, task: Task) => {
     e.stopPropagation();
@@ -347,6 +419,80 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
         </CardContent>
       </Card>
 
+      <Card className="mt-6">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <CardTitle>Project Files</CardTitle>
+            <Dialog open={isAddFileOpen} onOpenChange={setAddFileOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <Paperclip className="mr-2 h-4 w-4" />
+                  Add File
+                </Button>
+              </DialogTrigger>
+              <AddFileDialog 
+                isOpen={isAddFileOpen}
+                onClose={() => setAddFileOpen(false)}
+                onFileUploaded={() => {
+                  fetchProjectFiles(); 
+                  setAddFileOpen(false);
+                }}
+                projectId={projectId}
+              />
+            </Dialog>
+          </div>
+        </CardHeader>
+        <CardContent>
+        {isLoadingFiles ? (
+          <div className="flex justify-center items-center h-40">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>File Name</TableHead>
+                <TableHead>Type</TableHead>
+                <TableHead>Date Uploaded</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {projectFiles.length > 0 ? projectFiles.map((file, index) => (
+                <TableRow key={index}>
+                  <TableCell>{file.name}</TableCell>
+                  <TableCell>{file.type}</TableCell>
+                  <TableCell>{file.date}</TableCell>
+                  <TableCell className="text-right">
+                    <div className="inline-flex gap-1">
+                        <ActionButton
+                            onClick={(e) => handleDownload(file.name)}
+                            label="Download"
+                            className="text-blue-500 border-blue-200 hover:bg-blue-500 hover:border-blue-700"
+                        >
+                            <Download className="h-4 w-4" />
+                        </ActionButton>
+                        <ActionButton
+                            onClick={(e) => handleDeleteFileClick(e, file)}
+                            label="Delete"
+                            className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                        >
+                            <Trash2 className="h-4 w-4" />
+                        </ActionButton>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )) : (
+                <TableRow>
+                  <TableCell colSpan={4} className="text-center">No files found for this project.</TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+        </CardContent>
+      </Card>
+
       {taskToEdit && (
         <Dialog open={!!taskToEdit} onOpenChange={(isOpen) => !isOpen && setTaskToEdit(null)}>
             <DialogContent className="sm:max-w-[425px]">
@@ -378,6 +524,23 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                 <AlertDialogCancel>Cancel</AlertDialogCancel>
                 <AlertDialogAction onClick={handleConfirmDeleteTask} disabled={isDeletingTask}>
                     {isDeletingTask ? 'Deleting...' : 'Delete'}
+                </AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={!!fileToDelete} onOpenChange={(isOpen) => !isOpen && setFileToDelete(null)}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to delete this file?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete the file from the project.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleConfirmDeleteFile} disabled={isDeletingFile}>
+                    {isDeletingFile ? 'Deleting...' : 'Delete'}
                 </AlertDialogAction>
             </AlertDialogFooter>
         </AlertDialogContent>

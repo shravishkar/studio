@@ -28,7 +28,7 @@ export default function AddProjectPage() {
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8">
+    <div className="max-w-7xl mx-auto py-8">
       <div className="flex items-center gap-4 mb-6">
         <Button variant="ghost" size="icon" onClick={handleBackClick}>
             <ArrowLeft className="h-5 w-5" />

@@ -36,6 +36,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import Logo from "@/components/Logo";
+import { ModeToggle } from "@/components/ui/theme-toggle";
 
 const navItems = [
   { href: "/dashboard", icon: Home, label: "Dashboard" },
@@ -111,6 +112,9 @@ export default function DashboardLayout({
         </SidebarContent>
         <SidebarFooter>
           <SidebarMenu>
+            <SidebarMenuItem>
+              <ModeToggle />
+            </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton onClick={logout} tooltip="Logout">
                 <LogOut />
