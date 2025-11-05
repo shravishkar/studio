@@ -52,7 +52,7 @@ const ActionButton: FC<ActionButtonProps> = ({ onClick, children, label, classNa
     <button
       onClick={onClick}
       className={cn(
-        "group/action relative flex h-9 w-9 items-center justify-center rounded-full border bg-background transition-all duration-300 ease-in-out",
+        "group/action relative flex h-9 w-9 items-center justify-center rounded-full bg-transparent transition-all duration-300 ease-in-out",
         "hover:w-24",
         className
       )}
@@ -240,27 +240,27 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
               </TableCell>
               <TableCell className="text-right">
                 <div
-                  className="inline-flex justify-end items-center gap-1 rounded-full bg-muted p-1 border"
+                  className="inline-flex justify-end items-center gap-1 rounded-full bg-muted p-1"
                   onClick={(e) => e.stopPropagation()}
                 >
                     <ActionButton
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}`))}
                       label="View"
-                      className="text-blue-500 border-blue-200 hover:bg-blue-500 hover:border-blue-700"
+                      className="text-blue-500 hover:bg-blue-500"
                     >
                         <Eye className="h-4 w-4" />
                     </ActionButton>
                     <ActionButton
                       onClick={(e) => handleActionClick(e, () => router.push(`/dashboard/clients/${getClientId(project)}/projects/${project._id}/edit`))}
                       label="Edit"
-                      className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
+                      className="text-yellow-500 hover:bg-yellow-500"
                     >
                         <Edit className="h-4 w-4" />
                     </ActionButton>
                      <ActionButton
                        onClick={(e) => handleDeleteClick(e, project)}
                        label="Delete"
-                       className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                       className="text-red-500 hover:bg-red-500"
                      >
                         <Trash2 className="h-4 w-4" />
                     </ActionButton>
@@ -270,14 +270,14 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                     <ActionButton
                       onClick={(e) => handleViewTasks(e, project)}
                       label="Tasks"
-                      className="text-green-500 border-green-200 hover:bg-green-500 hover:border-green-700"
+                      className="text-green-500 hover:bg-green-500"
                     >
                        <ListChecks className="h-4 w-4" />
                     </ActionButton>
                     <ActionButton
                       onClick={(e) => handleAddTaskClick(e, project)}
                       label="Add"
-                      className="text-indigo-500 border-indigo-200 hover:bg-indigo-500 hover:border-indigo-700"
+                      className="text-indigo-500 hover:bg-indigo-500"
                     >
                         <PlusCircle className="h-4 w-4" />
                     </ActionButton>
@@ -336,14 +336,14 @@ const ProjectList: FC<ProjectListProps> = ({ projects, onProjectDeleted }) => {
                                     <ActionButton
                                         onClick={(e) => handleEditTaskClick(e, task)}
                                         label="Edit"
-                                        className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
+                                        className="text-yellow-500 hover:bg-yellow-500"
                                     >
                                         <Edit className="h-4 w-4" />
                                     </ActionButton>
                                     <ActionButton
                                         onClick={(e) => handleDeleteTaskClick(e, task)}
                                         label="Delete"
-                                        className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                                        className="text-red-500 hover:bg-red-500"
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </ActionButton>

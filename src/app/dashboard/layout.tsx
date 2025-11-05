@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect } from "react";
+import React from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
@@ -9,7 +9,6 @@ import {
   Users,
   Settings,
   LogOut,
-  PanelLeft,
   PlusCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
@@ -53,14 +52,12 @@ export default function DashboardLayout({
   const { tenantId, isLoading, logout } = useAuth();
   const pathname = usePathname();
 
-  const getPageTitle = () => {
-    if (pathname.includes('/projects')) {
-      return 'Projects';
-    }
-    const currentItem = navItems.find(item => pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href)));
-    return currentItem ? currentItem.label : "Dashboard";
-  };
-  const pageTitle = getPageTitle();
+  const activeItem = navItems
+    .slice()
+    .reverse()
+    .find((item) => pathname.startsWith(item.href));
+
+  const pageTitle = activeItem ? activeItem.label : 'Dashboard';
 
   if (isLoading || !tenantId) {
     return (
@@ -85,7 +82,7 @@ export default function DashboardLayout({
                 <SidebarMenuItem>
                   <Link href={item.href} passHref>
                     <SidebarMenuButton
-                      isActive={pageTitle === item.label}
+                      isActive={activeItem?.href === item.href}
                       tooltip={item.label}
                     >
                       <item.icon />

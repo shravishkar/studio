@@ -52,7 +52,7 @@ const ActionButton: FC<{ onClick: (e: MouseEvent) => void; children: React.React
     <button
       onClick={onClick}
       className={cn(
-        "group/action relative flex h-9 w-9 items-center justify-center rounded-full border bg-background transition-all duration-300 ease-in-out",
+        "group/action relative flex h-9 w-9 items-center justify-center rounded-full bg-transparent transition-all duration-300 ease-in-out",
         "hover:w-24",
         className
       )}
@@ -389,20 +389,20 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                     </TableCell>
                     <TableCell>{new Date(task.dueDate).toLocaleDateString()}</TableCell>
                     <TableCell className="text-right">
-                        <div className="inline-flex gap-1">
+                        <div className="inline-flex justify-end items-center gap-1 rounded-full bg-muted p-1">
                             <ActionButton
                                 onClick={(e) => handleEditTaskClick(e, task)}
                                 label="Edit"
-                                className="text-yellow-500 border-yellow-200 hover:bg-yellow-500 hover:border-yellow-700"
+                                className="text-yellow-500 hover:bg-yellow-500"
                             >
-                                <Edit className="h-4 w-4" />
+                                <Edit className="h-5 w-5" />
                             </ActionButton>
                             <ActionButton
                                 onClick={(e) => handleDeleteTaskClick(e, task)}
                                 label="Delete"
-                                className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                                className="text-red-500 hover:bg-red-500"
                             >
-                                <Trash2 className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                             </ActionButton>
                         </div>
                     </TableCell>
@@ -464,20 +464,20 @@ export default function ViewProjectDetails({ clientId, projectId }: ViewProjectD
                   <TableCell>{file.type}</TableCell>
                   <TableCell>{file.date}</TableCell>
                   <TableCell className="text-right">
-                    <div className="inline-flex gap-1">
+                    <div className="inline-flex justify-end items-center gap-1 rounded-full bg-muted p-1">
                         <ActionButton
                             onClick={(e) => handleDownload(file.name)}
                             label="Download"
-                            className="text-blue-500 border-blue-200 hover:bg-blue-500 hover:border-blue-700"
+                            className="text-blue-500 hover:bg-blue-500"
                         >
-                            <Download className="h-4 w-4" />
+                            <Download className="h-5 w-5" />
                         </ActionButton>
                         <ActionButton
                             onClick={(e) => handleDeleteFileClick(e, file)}
                             label="Delete"
-                            className="text-red-500 border-red-200 hover:bg-red-500 hover:border-red-700"
+                            className="text-red-500 hover:bg-red-500"
                         >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-5 w-5" />
                         </ActionButton>
                     </div>
                   </TableCell>
